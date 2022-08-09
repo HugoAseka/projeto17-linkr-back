@@ -52,7 +52,7 @@ export async function login (req, res) {
                 username: checkExistingUser.rows[0].username
             },
             token
-        })
+        });
     } catch (error) {
         return res.sendStatus(500);
     }
