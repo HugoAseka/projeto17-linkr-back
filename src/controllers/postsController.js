@@ -7,8 +7,7 @@ export async function getAllPosts(req, res) {
 }
 
 export async function insertPost(req, res) {
-  const Authorization = req.headers.authorization;
-  const token = Authorization?.replace("Bearer ", "");
+  const token = res.locals.token;
   const newPost = req.body;
   const { error } = postSchema.validate(newPost);
 
