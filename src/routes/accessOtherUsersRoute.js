@@ -1,11 +1,11 @@
 import { Router } from "express";
 import dotenv from "dotenv"; 
-import { getClickedUser } from "../controllers/accessOtherUsersController.js";
+import { getClickedUser,getUserByName } from "../controllers/accessOtherUsersController.js";
 dotenv.config(); 
 
 const router = Router();
 
 router.get("/users/:id", getClickedUser);
-router.get("/ranking",);
+router.get("/other_users",getUserByName);
 
 export default router;

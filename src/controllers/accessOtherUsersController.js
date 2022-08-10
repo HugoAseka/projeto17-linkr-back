@@ -27,3 +27,29 @@ export async function getClickedUser(req,res) {
         return res.sendStatus(500);
     }
 } 
+
+export async function getUserByName(req,res) { 
+    const { username } = req.query; 
+
+    try {
+        if(username.length>=3) { 
+            const { rows: findUsers } = await connection.query({
+                text: `SELECT id,username,"profilePhoto"
+                FROM users
+                WHERE username 
+                ILIKE ($1)
+                OFFSET 0 LIMIT 10
+            `,values: [`${username}%`]}); 
+
+            if(findUsers.length===0) { 
+                return res.sendStatus(404);
+            }
+            return res.send(findUsers).status(200);
+        } else { 
+            return res.sendStatus(400);
+        }
+    } catch (error) {
+        console.log(error);
+        return res.sendStatus(500);
+    }
+}
