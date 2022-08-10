@@ -28,8 +28,8 @@ export async function getUserByName(req,res) {
         } else { 
             return res.sendStatus(400);
         }
-    } catch (erro) {
-        console.log(erro);
+    } catch (error) {
+        console.log(error);
         return res.sendStatus(500);
     }
 }
