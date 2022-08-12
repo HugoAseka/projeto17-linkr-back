@@ -1,4 +1,5 @@
 import connection from "../db/database.js";
+import urlMetadata from "url-metadata";
 
 async function createPost(token, newPost) {
   const { url, description } = newPost;
@@ -6,18 +7,25 @@ async function createPost(token, newPost) {
     `SELECT u.id FROM users u JOIN sessions s ON u.id = s."userId" WHERE s.token = $1 `,
     [token]
   );
-
   const user = rows[0];
-
-  await connection.query(
-    `INSERT INTO posts (url,description,"userId") VALUES ($1,$2,$3)`,
-    [url, description, user.id]
-  );
+  return urlMetadata(url).then(async (m) => {
+    const {rows: postIdObj} = await connection.query(
+      `INSERT INTO posts (url,description,"userId","urlDescription","urlImage","urlTitle") VALUES ($1,$2,$3,$4,$5,$6) RETURNING id;` ,
+      [url, description, user.id, m.description, m.image, m.title]
+    );
+    const userId = user.id;
+    const postId = postIdObj[0].id;
+    return {userId, postId};
+  });
+ 
 }
 
 async function selectPosts() {
   return connection.query(
-    `SELECT p.url, p.description, u.username, u.email, u."profilePhoto" FROM posts p JOIN users u ON p."userId" = u.id ORDER BY p."createdAt" DESC  LIMIT 20; `
+    `SELECT p.url, p.description, u.username, u.email, u."profilePhoto", p."urlDescription", p."urlImage", p."urlTitle"  FROM posts p 
+    JOIN users u ON p."userId" = u.id 
+    ORDER BY p."createdAt" DESC  
+    LIMIT 20; `
   );
 }
 
