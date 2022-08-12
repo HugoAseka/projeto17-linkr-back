@@ -1,5 +1,6 @@
 import { postSchema } from "../schemas/postsSchema.js";
 import { postRepository } from "../repositories/postsRepository.js";
+import connection from "../db/database.js";
 
 export async function getAllPosts(req, res) {
   const { rows: posts } = await postRepository.selectPosts();
@@ -17,4 +18,27 @@ export async function insertPost(req, res) {
 
   await postRepository.createPost(token, newPost);
   res.sendStatus(200);
+} 
+
+export async function updateLike(req,res) {
+  const postId = req.params.id;
+  const { likeDislike } = req.body; 
+  const userId = res.locals.userId; 
+
+  try {
+    const { rows: postExist } = await connection.query('SELECT * FROM posts WHERE id= $1',[postId]);
+    if(postExist.length===0) { 
+      return res.sendStatus(404);
+    }
+    if(likeDislike==="like") { 
+      await connection.query('INSERT INTO "postLiked" ("userId","postId") VALUES ($1,$2)',[userId,postId]);
+      return res.send("Like").status(200);
+    } else { 
+      await connection.query('DELETE FROM "postLiked" WHERE "userId"= $1 AND "postId"= $2',[userId,postId]);
+      return res.send("Dislike").status(204);
+    }
+  } catch (error) {
+    console.log(error);
+    return res.sendStatus(500);
+  }
 }
