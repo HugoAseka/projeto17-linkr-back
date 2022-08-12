@@ -6,7 +6,7 @@ dotenv.config();
 
 const router = Router();
 
-router.get("/users/:id", checkAuth, getClickedUser);
+router.get("/users/:id", getClickedUser);
 router.get("/other-users",getUserByName);
 
 export default router;

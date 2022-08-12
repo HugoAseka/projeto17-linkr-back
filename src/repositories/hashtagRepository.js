@@ -33,17 +33,30 @@ async function hashtagsPosts(hashtag, userId, postId) {
     `SELECT * FROM hashtags WHERE name = $1`,
     [hashtag]
   );
-  
+
   const hashtagId = hashtagIdArray[0].id;
 
   await connection.query(
     `INSERT INTO "hashtagsPosts" ("postId","hashtagId","userId") VALUES ($1,$2,$3)`,
-    [userId, hashtagId,postId ]
+    [userId, hashtagId, postId]
   );
+}
+
+async function getHashtagRank() {
+  return connection.query(`
+    SELECT hashtags.id, hashtags.name, Count("hashtagsPosts"."hashtagId") AS count
+    FROM hashtags
+    JOIN "hashtagsPosts"
+    ON hashtags.id = "hashtagsPosts"."hashtagId"
+    GROUP BY hashtags.id
+    ORDER BY count DESC
+    LIMIT 10
+    `);
 }
 
 export const hashtagRepository = {
   getPostsByHashtags,
-  newHashtag,
+  getHashtagRank,
   hashtagsPosts,
+  newHashtag,
 };

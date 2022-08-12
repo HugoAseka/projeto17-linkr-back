@@ -1,6 +1,8 @@
 import { postSchema } from "../schemas/postsSchema.js";
 import { postRepository } from "../repositories/postsRepository.js";
+
 import { hashtagRepository } from "../repositories/hashtagRepository.js";
+
 
 export async function getAllPosts(req, res) {
   const { rows: posts } = await postRepository.selectPosts();
