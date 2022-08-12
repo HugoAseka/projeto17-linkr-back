@@ -7,6 +7,6 @@ const postsRouter = Router();
 
 postsRouter.get("/posts",getAllPosts);
 postsRouter.post("/posts", checkAuth, insertPost);
-postsRouter.put("/like/:id", updateLike);
+postsRouter.put("/like/:id",checkAuth, updateLike);
 
 export default postsRouter;
