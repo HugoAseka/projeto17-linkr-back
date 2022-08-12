@@ -9,6 +9,7 @@ export async function checkAuth (req, res, next) {
         SELECT * FROM sessions
         WHERE token = $1;
         `, [token]);
+        if (checkUserSession.rowCount === 0) return res.sendStatus(401);
         const userSession = checkUserSession.rows[0];
         if (!userSession) return res.sendStatus(401);
         res.locals.token = token;

@@ -51,13 +51,7 @@ export async function logout(req, res) {
   const token = res.locals.token;
   const userId = res.locals.userId;
   try {
-    await connection.query(
-      `
-        DELETE FROM sessions
-        WHERE token = $1 AND "userId" = $2;
-        `,
-      [token, userId]
-    );
+    await authRepository.deleteToken(userId, token);
     return res.sendStatus(204);
   } catch (error) {
     return res.sendStatus(500);
