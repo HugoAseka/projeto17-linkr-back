@@ -1,4 +1,3 @@
-import connection from "../db/database.js";
 import { compareSync } from "bcrypt";
 import { signUpSchema, loginSchema } from "../schemas/authSchema.js";
 import { authRepository } from "../repositories/authRepository.js";

@@ -67,10 +67,18 @@ async function deleteToken (userId, token) {
       )
 }
 
+async function checkToken (token) {
+    return await connection.query(`
+    SELECT * FROM sessions
+    WHERE token = $1;
+    `, [token]);
+}
+
 export const authRepository = {
   checkExistingUser,
   checkExistingEmail,
   addUser,
   addToken,
-  deleteToken
+  deleteToken,
+  checkToken
 };
