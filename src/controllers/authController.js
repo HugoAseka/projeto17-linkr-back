@@ -62,4 +62,11 @@ export async function login (req, res) {
     } catch (error) {
         return res.sendStatus(500);
     }
+} 
+export async function logout(req,res) { 
+    try {
+        
+    } catch (error) {
+        
+    }
 }
