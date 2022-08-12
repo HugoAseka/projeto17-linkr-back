@@ -25,7 +25,22 @@ async function selectPosts() {
   );
 }
 
+async function dislikePost(userId,postId) { 
+  return connection.query('DELETE FROM "postLiked" WHERE "userId"= $1 AND "postId"= $2',[userId,postId]);
+}
+
+async function likePost(userId,postId) { 
+  return await connection.query('INSERT INTO "postLiked" ("userId","postId") VALUES ($1,$2)',[userId,postId]);
+}
+
+async function existPost(postId) { 
+  return await connection.query('SELECT * FROM posts WHERE id= $1',[postId]);
+}
+
 export const postRepository = {
   createPost,
   selectPosts,
+  likePost, 
+  dislikePost, 
+  existPost
 };
