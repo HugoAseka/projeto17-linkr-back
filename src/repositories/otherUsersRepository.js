@@ -8,7 +8,10 @@ async function getUserClicked(id) {
         'posts', json_agg(json_build_object(
             'id', p.id, 
             'url', p.url, 
-            'description', p.description
+            'description', p.description,
+            'urlDescription', p."urlDescription", 
+            'urlTitle', p."urlTitle", 
+            'urlImage', p."urlImage"
         )))
         FROM users u
         JOIN posts p ON p."userId" = u.id

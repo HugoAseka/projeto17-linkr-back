@@ -1,6 +1,5 @@
 import { postSchema } from "../schemas/postsSchema.js";
 import { postRepository } from "../repositories/postsRepository.js";
-import connection from "../db/database.js";
 
 export async function getAllPosts(req, res) {
   const { rows: posts } = await postRepository.selectPosts();
