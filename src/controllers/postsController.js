@@ -22,20 +22,20 @@ export async function insertPost(req, res) {
 
 export async function updateLike(req,res) {
   const postId = req.params.id;
-  const { likeDislike } = req.body; 
+  const likeDislike = req.body.postLiked; 
   const userId = res.locals.userId; 
 
   try {
-    const { rows: postExist } = await connection.query('SELECT * FROM posts WHERE id= $1',[postId]);
+    const { rows: postExist } = await postRepository.existPost(postId);
     if(postExist.length===0) { 
       return res.sendStatus(404);
     }
     if(likeDislike==="like") { 
-      await connection.query('INSERT INTO "postLiked" ("userId","postId") VALUES ($1,$2)',[userId,postId]);
+      await postRepository.likePost(userId,postId);
       return res.send("Like").status(200);
     } else { 
-      await connection.query('DELETE FROM "postLiked" WHERE "userId"= $1 AND "postId"= $2',[userId,postId]);
-      return res.send("Dislike").status(204);
+        await postRepository.dislikePost(userId,postId);
+        return res.send("Dislike").status(204);
     }
   } catch (error) {
     console.log(error);
