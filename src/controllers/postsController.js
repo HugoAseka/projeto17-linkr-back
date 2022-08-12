@@ -1,6 +1,6 @@
 import { postSchema } from "../schemas/postsSchema.js";
 import { postRepository } from "../repositories/postsRepository.js";
-
+import { hashtagRepository } from "../repositories/hashtagRepository.js";
 
 export async function getAllPosts(req, res) {
   const { rows: posts } = await postRepository.selectPosts();
@@ -12,17 +12,28 @@ export async function insertPost(req, res) {
   const token = Authorization?.replace("Bearer ", "");
   const newPost = req.body;
   const { error } = postSchema.validate(newPost);
+  const { description } = newPost;
+
+  const arr = description.split(" ");
+  const hashtags = arr.filter((str) => str[0] === "#");
 
   if (error) {
     return res.sendStatus(400);
   }
 
-  try {
-    await postRepository.createPost(token, newPost);
+  
+    const {postId,userId} = await postRepository.createPost(token, newPost);
+    hashtags.map(async (hashtag) => {
+      await hashtagRepository.newHashtag(hashtag);
+    });
+   
+    hashtags.map(async (hashtag) => {
+      await hashtagRepository.hashtagsPosts(hashtag, postId,userId);
+    });
+
+    
     res.sendStatus(200);
-  } catch {
-    res.sendStatus(500);
-  }
+ 
 }
 
 export async function updateLike(req, res) {
@@ -43,7 +54,7 @@ export async function updateLike(req, res) {
       return res.send("Dislike").status(204);
     }
   } catch (error) {
-    console.log(error);
+
     return res.sendStatus(500);
   }
 }
