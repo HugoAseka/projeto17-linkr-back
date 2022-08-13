@@ -16,7 +16,8 @@ export async function getClickedUser(req,res) {
 } 
 
 export async function getUserByName(req,res) { 
-    const { username } = req.query; 
+    const { username } = req.body; 
+    console.log(username);
 
     try {
         if(username.length>=3) { 
