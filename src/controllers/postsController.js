@@ -1,7 +1,7 @@
 import { postSchema } from "../schemas/postsSchema.js";
 import { postRepository } from "../repositories/postsRepository.js";
-
 import { hashtagRepository } from "../repositories/hashtagRepository.js";
+
 
 
 export async function getAllPosts(req, res) {
@@ -59,4 +59,28 @@ export async function updateLike(req, res) {
 
     return res.sendStatus(500);
   }
+}
+
+export async function deletePost(request, response) {
+  const postId = request.params.id;
+  const userId = response.locals.userId;
+
+  const { rows: post } = await postRepository.existPost(postId);
+  console.log(post);
+  if(post.length === 0) {
+    return response.status(404).send("Post não encontrado");
+  }
+  await hashtagRepository.deletingHashtagPost(userId, postId);
+
+  await postRepository.deletingPost(userId, postId);
+
+  response.sendStatus(200);
+}
+
+export async function editPost(request, response) {
+  const postId = request.params.id;
+  const userId = response.locals.userId;
+
+
+
 }

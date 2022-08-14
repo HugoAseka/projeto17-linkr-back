@@ -54,9 +54,18 @@ async function getHashtagRank() {
     `);
 }
 
+async function deletingHashtagPost(userId, postId) {
+
+  return connection.query(`
+  DELETE FROM "hashtagsPosts"
+  WHERE "hashtagsPosts"."postId" = ($1) AND "hashtagsPosts"."userId" = ($2) 
+  `, [postId, userId]);
+}
+
 export const hashtagRepository = {
   getPostsByHashtags,
   getHashtagRank,
   hashtagsPosts,
   newHashtag,
+  deletingHashtagPost
 };

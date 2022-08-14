@@ -41,10 +41,19 @@ async function existPost(postId) {
   return await connection.query('SELECT * FROM posts WHERE id= $1',[postId]);
 }
 
+async function deletingPost(userId, postId) { 
+  
+  return await connection.query(`
+  DELETE FROM posts
+  WHERE posts.id = ($1) AND posts."userId" = ($2)
+  `, [postId, userId]);
+}
+
 export const postRepository = {
   createPost,
   selectPosts,
   likePost, 
   dislikePost, 
-  existPost
+  existPost,
+  deletingPost
 };
