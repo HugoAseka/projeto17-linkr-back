@@ -74,9 +74,9 @@ export async function deletePost(request, response) {
     if(post[0].userId !== userId) {
       return response.status(401).send("Usuário não pode deletar esse post!");
     }
-    //await hashtagRepository.deletingHashtagPost(userId, postId);
+    await hashtagRepository.deletingHashtagPost(userId, postId);
 
-    //await postRepository.deletingPost(userId, postId);
+    await postRepository.deletingPost(userId, postId);
 
     return response.sendStatus(200);
   } catch {
