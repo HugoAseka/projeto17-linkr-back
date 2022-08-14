@@ -43,6 +43,8 @@ export async function updateLike(req, res) {
   const likeDislike = req.body.postLiked;
   const userId = res.locals.userId;
 
+  console.log(userId);
+
   try {
     const { rows: postExist } = await postRepository.existPost(postId);
     if (postExist.length === 0) {
