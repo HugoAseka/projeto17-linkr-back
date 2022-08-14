@@ -49,11 +49,20 @@ async function deletingPost(userId, postId) {
   `, [postId, userId]);
 }
 
+async function updatePost(userId, postId, description) {
+
+  return await connection.query(`
+  UPDATE posts SET description = ($1) 
+  WHERE posts.id = ($2) AND posts."userId" = ($3)
+  `);
+}
+
 export const postRepository = {
   createPost,
   selectPosts,
   likePost, 
   dislikePost, 
   existPost,
-  deletingPost
+  deletingPost,
+  updatePost
 };

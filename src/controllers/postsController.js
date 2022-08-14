@@ -66,9 +66,12 @@ export async function deletePost(request, response) {
   const userId = response.locals.userId;
 
   const { rows: post } = await postRepository.existPost(postId);
-  console.log(post);
+  
   if(post.length === 0) {
-    return response.status(404).send("Post não encontrado");
+    return response.status(404).send("Post não encontrado!");
+  }
+  if(post.userId !== userId) {
+    return response.status(401).send("Usuário não pode deletar esse post!");
   }
   await hashtagRepository.deletingHashtagPost(userId, postId);
 
@@ -78,9 +81,11 @@ export async function deletePost(request, response) {
 }
 
 export async function editPost(request, response) {
+  const description = request.body.description
   const postId = request.params.id;
   const userId = response.locals.userId;
-
-
-
+  
+  await postRepository.updatePost(userId, postId, description);
+  await hashtagRepository.deletingHashtagPost(userId, postId);
+  //Atualizei o post e deletei todos os itens do HashtagPost referentes a esse post. Preciso ainda criar um novo hashtagPost e um tabela para hashtags.
 }

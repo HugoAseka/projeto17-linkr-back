@@ -62,6 +62,7 @@ async function deletingHashtagPost(userId, postId) {
   `, [postId, userId]);
 }
 
+
 export const hashtagRepository = {
   getPostsByHashtags,
   getHashtagRank,
