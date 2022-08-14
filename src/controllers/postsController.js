@@ -18,6 +18,7 @@ export async function insertPost(req, res) {
 
   const arr = description.split(" ");
   const hashtags = arr.filter((str) => str[0] === "#");
+  const newHashtags = hashtags.map(string => string.replace("#", ""));
 
   if (error) {
     return res.sendStatus(400);
@@ -25,11 +26,11 @@ export async function insertPost(req, res) {
 
   
     const {postId,userId} = await postRepository.createPost(token, newPost);
-    hashtags.map(async (hashtag) => {
+    newHashtags.map(async (hashtag) => {
       await hashtagRepository.newHashtag(hashtag);
     });
    
-    hashtags.map(async (hashtag) => {
+    newHashtags.map(async (hashtag) => {
       await hashtagRepository.hashtagsPosts(hashtag, postId,userId);
     });
 
@@ -62,30 +63,58 @@ export async function updateLike(req, res) {
 }
 
 export async function deletePost(request, response) {
+  try {
+    const postId = request.params.id;
+    const userId = response.locals.userId;
+    const { rows: post } = await postRepository.existPost(postId);
+    
+    if(post.length === 0) {
+      return response.status(404).send("Post não encontrado!");
+    }
+    if(post[0].userId !== userId) {
+      return response.status(401).send("Usuário não pode deletar esse post!");
+    }
+    //await hashtagRepository.deletingHashtagPost(userId, postId);
+
+    //await postRepository.deletingPost(userId, postId);
+
+    return response.sendStatus(200);
+  } catch {
+    return response.status(500).send("Erro no servidor");
+  }
+  
+}
+
+export async function editPost(request, response) {
+
+  const description = request.body.description
   const postId = request.params.id;
   const userId = response.locals.userId;
 
   const { rows: post } = await postRepository.existPost(postId);
-  
+
   if(post.length === 0) {
-    return response.status(404).send("Post não encontrado!");
+    return response.status(404).send("Post não encontrado")
   }
-  if(post.userId !== userId) {
-    return response.status(401).send("Usuário não pode deletar esse post!");
+
+  if(post[0].userId !== userId) {
+    return response.status(401).send("Usuário não pode editar esse post!");
   }
-  await hashtagRepository.deletingHashtagPost(userId, postId);
 
-  await postRepository.deletingPost(userId, postId);
-
-  response.sendStatus(200);
-}
-
-export async function editPost(request, response) {
-  const description = request.body.description
-  const postId = request.params.id;
-  const userId = response.locals.userId;
-  
   await postRepository.updatePost(userId, postId, description);
   await hashtagRepository.deletingHashtagPost(userId, postId);
-  //Atualizei o post e deletei todos os itens do HashtagPost referentes a esse post. Preciso ainda criar um novo hashtagPost e um tabela para hashtags.
+
+  const arr = description.split(" ");
+  const hashtags = arr.filter((str) => str[0] === "#");
+  const newHashtags = hashtags.map(string => string.replace("#", ""));
+
+    newHashtags.map(async (hashtag) => {
+      await hashtagRepository.newHashtag(hashtag);
+    });
+   
+    newHashtags.map(async (hashtag) => {
+      await hashtagRepository.hashtagsPosts(hashtag, postId,userId);
+    });
+
+  response.status(200).send("ok");
 }

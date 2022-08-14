@@ -54,7 +54,7 @@ async function updatePost(userId, postId, description) {
   return await connection.query(`
   UPDATE posts SET description = ($1) 
   WHERE posts.id = ($2) AND posts."userId" = ($3)
-  `);
+  `, [description ,postId , userId]);
 }
 
 export const postRepository = {
