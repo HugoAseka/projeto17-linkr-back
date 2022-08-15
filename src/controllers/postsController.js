@@ -50,14 +50,16 @@ export async function updateLike(req, res) {
       return res.sendStatus(404);
     }
     if (likeDislike === "like") {
+      await postRepository.updateLikes(postId,postExist[0].likes);
       await postRepository.likePost(userId, postId);
       return res.send("Like").status(200);
     } else {
+      await postRepository.updateDeslikes(postId,postExist[0].likes);
       await postRepository.dislikePost(userId, postId);
       return res.send("Dislike").status(204);
     }
   } catch (error) {
-
+    console.log(error);
     return res.sendStatus(500);
   }
 }

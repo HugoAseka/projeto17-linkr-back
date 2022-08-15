@@ -22,7 +22,7 @@ async function createPost(token, newPost) {
 
 async function selectPosts() {
   return connection.query(
-    `SELECT p.id, p.url, p.description, u.username, u.email, u."profilePhoto", p."urlDescription", p."urlImage", p."urlTitle"  FROM posts p 
+    `SELECT u.id AS "userId",p.url, p.description, u.username, u.email, u."profilePhoto", p."urlDescription", p."urlImage", p."urlTitle", p.likes  FROM posts p 
     JOIN users u ON p."userId" = u.id 
     ORDER BY p."createdAt" DESC  
     LIMIT 20; `
@@ -57,6 +57,16 @@ async function updatePost(userId, postId, description) {
   `, [description ,postId , userId]);
 }
 
+async function updateLikes(postId,likes) { 
+  console.log(likes);
+  return await connection.query('UPDATE posts SET likes= $1 WHERE id= $2',[++likes,postId]);
+} 
+
+async function updateDeslikes(postId,likes) { 
+  console.log(likes);
+  return await connection.query('UPDATE posts SET likes= $1 WHERE id= $2',[--likes,postId]);
+}
+
 export const postRepository = {
   createPost,
   selectPosts,
@@ -64,5 +74,7 @@ export const postRepository = {
   dislikePost, 
   existPost,
   deletingPost,
-  updatePost
+  updatePost,
+  updateLikes, 
+  updateDeslikes
 };
