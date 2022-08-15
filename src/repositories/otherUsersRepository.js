@@ -11,11 +11,11 @@ async function getUserClicked(id) {
             'description', p.description,
             'urlDescription', p."urlDescription", 
             'urlTitle', p."urlTitle", 
-            'urlImage', p."urlImage"
+            'urlImage', p."urlImage", 
+            'likes', p.likes
         )))
         FROM users u
         JOIN posts p ON p."userId" = u.id
-        JOIN "postLiked" pl ON pl."postId" = p.id 
         WHERE u.id= $1
         GROUP BY u.id
         `,[id]);
