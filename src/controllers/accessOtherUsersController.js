@@ -1,3 +1,4 @@
+import connection from '../db/database.js';
 import { otherUsersRepository } from '../repositories/otherUsersRepository.js';
 
 export async function getClickedUser(req,res) { 
@@ -6,6 +7,8 @@ export async function getClickedUser(req,res) {
     try {
         const { rows: user } = await otherUsersRepository.getUserClicked(id)
         if(user.length===0) { 
+            const { rows: userZeroPost } = connection.query(`SELECT * FROM users WHERE id= $1`,[id]);
+            console.log(userZeroPost);
             return res.sendStatus(404);
         }
         return res.send(user.map(u => u.json_build_object)).status(200);

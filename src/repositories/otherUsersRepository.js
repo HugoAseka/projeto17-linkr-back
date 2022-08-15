@@ -15,6 +15,7 @@ async function getUserClicked(id) {
         )))
         FROM users u
         JOIN posts p ON p."userId" = u.id
+        JOIN "postLiked" pl ON pl."postId" = p.id 
         WHERE u.id= $1
         GROUP BY u.id
         `,[id]);
