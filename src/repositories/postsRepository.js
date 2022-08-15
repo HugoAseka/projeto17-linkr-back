@@ -22,7 +22,7 @@ async function createPost(token, newPost) {
 
 async function selectPosts() {
   return connection.query(
-    `SELECT p.url, p.description, u.username, u.email, u."profilePhoto", p."urlDescription", p."urlImage", p."urlTitle"  FROM posts p 
+    `SELECT p.id, p.url, p.description, u.username, u.email, u."profilePhoto", p."urlDescription", p."urlImage", p."urlTitle"  FROM posts p 
     JOIN users u ON p."userId" = u.id 
     ORDER BY p."createdAt" DESC  
     LIMIT 20; `
