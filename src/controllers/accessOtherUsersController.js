@@ -40,9 +40,11 @@ export async function getUserByName(req,res) {
 
 export async function checkFollow (req, res) {
     const friendId = req.body;
-    const userId = res.locals.userId;
-    const {error} = followSchema.validate(friendId);
-    if (error) return res.status(422).send(error.message);
+    const userId = parseInt(res.locals.userId);
+    // const {error} = followSchema.validate(friendId);
+    // if (error) return res.status(422).send(error.message);
+    if (!friendId) return res.sendStatus(422);
+
     try {
         const { rows: follower} = await connection.query(`
         SELECT * from followers
@@ -60,8 +62,8 @@ export async function checkFollow (req, res) {
 }
 
 export async function followFriend (req, res) {
-    const friendId = req.body;
-    const userId = res.locals.userId;
+    const friendId = parseInt(req.body);
+    const userId = parseInt(res.locals.userId);
     const {error} = followSchema.validate(friendId);
     if (error) return res.status(422).send(error.message);
     try {
