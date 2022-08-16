@@ -67,12 +67,26 @@ export async function followFriend (req, res) {
     const {error} = followSchema.validate(friendId);
     if (error) return res.status(422).send(error.message);
     try {
-        await connection.query(`
-        INSERT INTO followers
-        ("mainUserId", "followerId")
-        VALUES ($1, $2);
+        const searchFollow = await connection.query(`
+        SELECT * from followers
+        WHERE "mainUserId" = $1 AND "followerId" = $2
         `, [friendId.friendId, userId]);
-        return res.status(200).send("Followed user" + " " + friendId.friendId);
+        if (searchFollow.rowCount === 0) {
+            await connection.query(`
+            INSERT INTO followers
+            ("mainUserId", "followerId")
+            VALUES ($1, $2);
+            `, [friendId.friendId, userId]);
+            return res.status(200);
+        }
+        else if (searchFollow.rowCount > 0) {
+            await connection.query (`
+            DELETE FROM followers
+            WHERE "mainUserId" = $1 AND "followerId" = $2
+             `, [friendId.friendId, userId]);
+             return res.status(204);
+        }
+        
     } catch (error) {
         return res.sendStatus(500);
     }
