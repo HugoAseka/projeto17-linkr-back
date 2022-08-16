@@ -3,12 +3,14 @@ import connection from "../db/database.js";
 async function getPostsByHashtags(hashtag) {
   return await connection.query(
     `
-    SELECT posts.* 
+    SELECT posts.*, users.username, users."profilePhoto", users.email, users.id AS "userId"
     FROM hashtags
     JOIN "hashtagsPosts" 
     ON hashtags.id = "hashtagsPosts"."hashtagId"
     JOIN posts
     ON "hashtagsPosts"."postId" = posts.id
+    JOIN users 
+    ON posts."userId" = users.id
     WHERE hashtags.name = ($1)
     ORDER BY "createdAt" DESC
         `,
