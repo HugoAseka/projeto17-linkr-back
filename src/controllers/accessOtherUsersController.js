@@ -56,3 +56,20 @@ export async function checkFollow (req, res) {
         return res.sendStatus(500);
     }
 }
+
+export async function followFriend (req, res) {
+    const friendId = req.body;
+    const userId = res.locals.userId;
+    const {error} = followSchema.validate(friendId);
+    if (error) return res.status(422).send(error.message);
+    try {
+        await connection.query(`
+        INSERT INTO followers
+        ("mainUserId", "followerId")
+        VALUES ($1, $2);
+        `, [friendId.friendId, userId]);
+        return res.status(200).send("Followed user" + " " + friendId.friendId);
+    } catch (error) {
+        return res.sendStatus(500);
+    }
+}
