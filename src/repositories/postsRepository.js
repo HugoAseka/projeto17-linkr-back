@@ -41,6 +41,22 @@ async function existPost(postId) {
   return await connection.query('SELECT * FROM posts WHERE id= $1',[postId]);
 }
 
+async function deletingPost(userId, postId) { 
+  
+  return await connection.query(`
+  DELETE FROM posts
+  WHERE posts.id = ($1) AND posts."userId" = ($2)
+  `, [postId, userId]);
+}
+
+async function updatePost(userId, postId, description) {
+
+  return await connection.query(`
+  UPDATE posts SET description = ($1) 
+  WHERE posts.id = ($2) AND posts."userId" = ($3)
+  `, [description ,postId , userId]);
+}
+
 async function updateLikes(postId,likes) { 
   console.log(likes);
   return await connection.query('UPDATE posts SET likes= $1 WHERE id= $2',[++likes,postId]);
@@ -56,7 +72,9 @@ export const postRepository = {
   selectPosts,
   likePost, 
   dislikePost, 
-  existPost, 
+  existPost,
+  deletingPost,
+  updatePost,
   updateLikes, 
   updateDeslikes
 };
