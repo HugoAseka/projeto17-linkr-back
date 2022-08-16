@@ -46,11 +46,11 @@ export async function checkFollow (req, res) {
     if (!friendId) return res.sendStatus(422);
 
     try {
-        const { rows: follower} = await connection.query(`
+        const searchFollow = await connection.query(`
         SELECT * from followers
         WHERE "mainUserId" = $1 AND "followerId" = $2
         `, [friendId.friendId, userId]);
-        if (follower.length === 0) return res.status(404).json({
+        if (searchFollow.rowCount === 0) return res.status(404).json({
             isFollower: false
         });
         return res.status(200).json({
