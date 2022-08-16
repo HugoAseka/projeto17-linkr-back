@@ -62,7 +62,7 @@ export async function checkFollow (req, res) {
 }
 
 export async function followFriend (req, res) {
-    const friendId = parseInt(req.body);
+    const friendId = req.body;
     const userId = parseInt(res.locals.userId);
     const {error} = followSchema.validate(friendId);
     if (error) return res.status(422).send(error.message);
