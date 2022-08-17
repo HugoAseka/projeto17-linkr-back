@@ -1,6 +1,7 @@
 import { postSchema } from "../schemas/postsSchema.js";
 import { postRepository } from "../repositories/postsRepository.js";
 import { hashtagRepository } from "../repositories/hashtagRepository.js";
+import connection from "../db/database.js";
 
 
 
@@ -127,4 +128,31 @@ export async function editPost(request, response) {
     });
 
   response.status(200).send("ok");
+} 
+
+export async function repost(req, res) { 
+  const userId = res.locals.userId;
+  const { postId } = req.params;  
+
+  console.log(postId,userId);
+
+  try {
+    const { rows: postExistence } = await connection.query(`SELECT * FROM posts WHERE id= $1`,[postId]);
+    if(postExistence.length === 0) { 
+      return res.sendStatus(404);
+    }
+    const { rows: verifyOwner } = await connection.query(`
+      SELECT u.id AS "ownerId", p.* 
+      FROM posts p
+      JOIN users u ON p."userId" = u.id
+      WHERE p.id= $1 AND u.id= $2
+    `,[postId,userId]);
+    if(verifyOwner.length !== 0) { 
+      return res.status(401).send("This is your post, you can't repost it!");
+    }
+    return res.send(verifyOwner).status(200);
+  } catch (error) {
+    console.log(error);
+    return res.sendStatus(500);
+  }
 }

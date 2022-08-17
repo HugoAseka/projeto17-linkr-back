@@ -21,6 +21,10 @@ async function getUserClicked(id) {
         `,[id]);
 } 
 
+async function getUserWithoutPosts(id) { 
+    return await connection.query(`SELECT * FROM users WHERE id= $1`,[id]);
+}
+
 async function getUsersbyName(username) { 
     return await connection.query({
         text: `SELECT id,username,"profilePhoto"
@@ -29,8 +33,8 @@ async function getUsersbyName(username) {
         ILIKE ($1)
         OFFSET 0 LIMIT 10
     `,values: [`${username}%`]}); 
-}
+} 
 
 export const otherUsersRepository = { 
-    getUserClicked, getUsersbyName
+    getUserClicked, getUsersbyName, getUserWithoutPosts
 }

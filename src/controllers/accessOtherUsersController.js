@@ -6,10 +6,9 @@ export async function getClickedUser(req,res) {
     const { id } = req.params; 
 
     try {
-        const { rows: user } = await otherUsersRepository.getUserClicked(id)
+        const { rows: user } = await otherUsersRepository.getUserClicked(id);
         if(user.length===0) { 
-            const { rows: userZeroPost } = connection.query(`SELECT * FROM users WHERE id= $1`,[id]);
-            console.log(userZeroPost);
+            const { rows: userZeroPost } = await otherUsersRepository.getUserWithoutPosts(id);
             if(userZeroPost.length !== 0) { 
                 const userZero = [ 
                     { 
