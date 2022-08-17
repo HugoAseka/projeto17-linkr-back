@@ -21,14 +21,18 @@ async function getUserClicked(id) {
         `,[id]);
 } 
 
-async function getUsersbyName(username) { 
+async function getUsersbyName(username, userId) { 
     return await connection.query({
-        text: `SELECT id,username,"profilePhoto"
-        FROM users
-        WHERE username 
-        ILIKE ($1)
+        text: `SELECT u.id,u.username,u."profilePhoto", f."followerId"
+        FROM users u
+        LEFT JOIN followers f
+        ON f."mainUserId" = u.id
+        WHERE u.username ILIKE ($1) AND f."followerId" = $2 OR f."followerId" IS NULL AND u.username ILIKE ($1)
+        GROUP BY u.id, f."followerId"
+        ORDER BY f."followerId" ASC
         OFFSET 0 LIMIT 10
-    `,values: [`${username}%`]}); 
+        
+    `,values: [`${username}%`, userId]}); 
 }
 
 export const otherUsersRepository = { 
