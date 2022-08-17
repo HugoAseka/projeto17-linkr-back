@@ -21,10 +21,11 @@ export async function getClickedUser(req,res) {
 
 export async function getUserByName(req,res) { 
     const { username } = req.body; 
-
+    if (!username) return res.sendStatus(422)
+    const userId = parseInt(res.locals.userId);
     try {
         if(username.length>=3) { 
-            const { rows: findUsers } = await otherUsersRepository.getUsersbyName(username);
+            const { rows: findUsers } = await otherUsersRepository.getUsersbyName(username, userId);
             if(findUsers.length===0) { 
                 return res.sendStatus(404);
             }
