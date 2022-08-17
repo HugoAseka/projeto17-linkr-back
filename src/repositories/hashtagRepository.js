@@ -3,12 +3,14 @@ import connection from "../db/database.js";
 async function getPostsByHashtags(hashtag) {
   return await connection.query(
     `
-    SELECT posts.* 
+    SELECT posts.*, users.username, users."profilePhoto", users.email, users.id AS "userId"
     FROM hashtags
     JOIN "hashtagsPosts" 
     ON hashtags.id = "hashtagsPosts"."hashtagId"
     JOIN posts
     ON "hashtagsPosts"."postId" = posts.id
+    JOIN users 
+    ON posts."userId" = users.id
     WHERE hashtags.name = ($1)
     ORDER BY "createdAt" DESC
         `,
@@ -54,9 +56,19 @@ async function getHashtagRank() {
     `);
 }
 
+async function deletingHashtagPost(userId, postId) {
+
+  return connection.query(`
+  DELETE FROM "hashtagsPosts"
+  WHERE "hashtagsPosts"."postId" = ($1) AND "hashtagsPosts"."userId" = ($2) 
+  `, [postId, userId]);
+}
+
+
 export const hashtagRepository = {
   getPostsByHashtags,
   getHashtagRank,
   hashtagsPosts,
   newHashtag,
+  deletingHashtagPost
 };
