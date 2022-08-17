@@ -20,12 +20,12 @@ async function createPost(token, newPost) {
  
 }
 
-async function selectPosts() {
+async function selectPosts(limit) {
   return connection.query(
-    `SELECT u.id AS "userId",p.url, p.description, u.username, u.email, u."profilePhoto", p."urlDescription", p."urlImage", p."urlTitle", p.likes  FROM posts p 
+    `SELECT p.url, p.description, u.username, u.email, u."profilePhoto", p."urlDescription", p."urlImage", p."urlTitle"  FROM posts p 
     JOIN users u ON p."userId" = u.id 
     ORDER BY p."createdAt" DESC  
-    LIMIT 20; `
+    LIMIT ${limit}; `
   );
 }
 
@@ -41,40 +41,10 @@ async function existPost(postId) {
   return await connection.query('SELECT * FROM posts WHERE id= $1',[postId]);
 }
 
-async function deletingPost(userId, postId) { 
-  
-  return await connection.query(`
-  DELETE FROM posts
-  WHERE posts.id = ($1) AND posts."userId" = ($2)
-  `, [postId, userId]);
-}
-
-async function updatePost(userId, postId, description) {
-
-  return await connection.query(`
-  UPDATE posts SET description = ($1) 
-  WHERE posts.id = ($2) AND posts."userId" = ($3)
-  `, [description ,postId , userId]);
-}
-
-async function updateLikes(postId,likes) { 
-  console.log(likes);
-  return await connection.query('UPDATE posts SET likes= $1 WHERE id= $2',[++likes,postId]);
-} 
-
-async function updateDeslikes(postId,likes) { 
-  console.log(likes);
-  return await connection.query('UPDATE posts SET likes= $1 WHERE id= $2',[--likes,postId]);
-}
-
 export const postRepository = {
   createPost,
   selectPosts,
   likePost, 
   dislikePost, 
-  existPost,
-  deletingPost,
-  updatePost,
-  updateLikes, 
-  updateDeslikes
+  existPost
 };
