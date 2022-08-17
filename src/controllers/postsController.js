@@ -134,8 +134,6 @@ export async function repost(req, res) {
   const userId = res.locals.userId;
   const { postId } = req.params;  
 
-  console.log(postId,userId);
-
   try {
     const { rows: postExistence } = await connection.query(`SELECT * FROM posts WHERE id= $1`,[postId]);
     if(postExistence.length === 0) { 
@@ -149,7 +147,9 @@ export async function repost(req, res) {
     `,[postId,userId]);
     if(verifyOwner.length !== 0) { 
       return res.status(401).send("This is your post, you can't repost it!");
-    }
+    } 
+    await connection.query(`INSERT INTO "rePosts" ("userId","postId") VALUES ($1,$2)`,[userId,postId]);
+    await connection.query(`UPDATE posts SET reposts= $1 WHERE id= $2`,[++postExistence[0].reposts,postId]);
     return res.send(verifyOwner).status(200);
   } catch (error) {
     console.log(error);
