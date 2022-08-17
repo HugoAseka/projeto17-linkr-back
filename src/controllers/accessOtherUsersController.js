@@ -40,15 +40,17 @@ export async function getUserByName(req,res) {
 
 export async function checkFollow (req, res) {
     const friendId = req.body;
-    const userId = res.locals.userId;
-    const {error} = followSchema.validate(friendId);
-    if (error) return res.status(422).send(error.message);
+    const userId = parseInt(res.locals.userId);
+    // const {error} = followSchema.validate(friendId);
+    // if (error) return res.status(422).send(error.message);
+    if (!friendId) return res.sendStatus(422);
+
     try {
-        const { rows: follower} = await connection.query(`
+        const searchFollow = await connection.query(`
         SELECT * from followers
         WHERE "mainUserId" = $1 AND "followerId" = $2
         `, [friendId.friendId, userId]);
-        if (follower.length === 0) return res.status(404).json({
+        if (searchFollow.rowCount === 0) return res.status(404).json({
             isFollower: false
         });
         return res.status(200).json({
@@ -61,16 +63,30 @@ export async function checkFollow (req, res) {
 
 export async function followFriend (req, res) {
     const friendId = req.body;
-    const userId = res.locals.userId;
+    const userId = parseInt(res.locals.userId);
     const {error} = followSchema.validate(friendId);
     if (error) return res.status(422).send(error.message);
     try {
-        await connection.query(`
-        INSERT INTO followers
-        ("mainUserId", "followerId")
-        VALUES ($1, $2);
+        const searchFollow = await connection.query(`
+        SELECT * from followers
+        WHERE "mainUserId" = $1 AND "followerId" = $2
         `, [friendId.friendId, userId]);
-        return res.status(200).send("Followed user" + " " + friendId.friendId);
+        if (searchFollow.rowCount === 0) {
+            await connection.query(`
+            INSERT INTO followers
+            ("mainUserId", "followerId")
+            VALUES ($1, $2);
+            `, [friendId.friendId, userId]);
+            return res.status(200);
+        }
+        else if (searchFollow.rowCount > 0) {
+            await connection.query (`
+            DELETE FROM followers
+            WHERE "mainUserId" = $1 AND "followerId" = $2
+             `, [friendId.friendId, userId]);
+             return res.status(204);
+        }
+        
     } catch (error) {
         return res.sendStatus(500);
     }
