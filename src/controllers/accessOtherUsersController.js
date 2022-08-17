@@ -9,6 +9,17 @@ export async function getClickedUser(req,res) {
         if(user.length===0) { 
             const { rows: userZeroPost } = connection.query(`SELECT * FROM users WHERE id= $1`,[id]);
             console.log(userZeroPost);
+            if(userZeroPost.length !== 0) { 
+                const userZero = [ 
+                    { 
+                        id: userZeroPost[0].id,
+                        username: userZeroPost[0].username,
+                        profilePhoto: userZeroPost[0].profilePhoto,
+                        posts: []
+                    }
+                ]; 
+                return res.send(userZero).status(200);
+            }
             return res.sendStatus(404);
         }
         return res.send(user.map(u => u.json_build_object)).status(200);
