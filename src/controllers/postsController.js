@@ -43,21 +43,29 @@ export async function updateLike(req, res) {
   const postId = req.params.id;
   const likeDislike = req.body.postLiked;
   const userId = res.locals.userId;
-
+  
   try {
     const { rows: postExist } = await postRepository.existPost(postId);
     if (postExist.length === 0) {
       return res.sendStatus(404);
     }
+    const { rows: isLikedDisliked } = await postRepository.existLike(postId, userId);
     if (likeDislike === "like") {
-      await postRepository.updateLikes(postId,postExist[0].likes);
+      if(isLikedDisliked.length !== 0) {
+        return res.status(401).send("Você já curtiu esse post!");
+      }
+      await postRepository.updateLikes(postId, userId, postExist[0].likes);
       await postRepository.likePost(userId, postId);
       return res.send("Like").status(200);
-    } else {
+    } else if (likeDislike === "dislike"){
+      if(isLikedDisliked.length === 0) {
+        return res.status(401).send("Você já descurtiu esse post!");
+      }
       await postRepository.updateDeslikes(postId,postExist[0].likes);
       await postRepository.dislikePost(userId, postId);
       return res.send("Dislike").status(204);
     }
+    return res.sendStatus(500);
   } catch (error) {
     console.log(error);
     return res.sendStatus(500);
