@@ -1,5 +1,6 @@
 import connection from "../db/database.js";
 import urlMetadata from "url-metadata";
+import { response } from "express";
 
 async function createPost(token, newPost) {
   const { url, description } = newPost;
@@ -22,7 +23,8 @@ async function createPost(token, newPost) {
 
 async function selectPosts() {
   return connection.query(
-    `SELECT u.id AS "userId",p.url, p.description, u.username, u.email, u."profilePhoto", p."urlDescription", p."urlImage", p."urlTitle", p.likes  FROM posts p 
+    `SELECT p.id, p.url, p.description, p."urlDescription", p."urlImage", p."urlTitle", p.likes, u.id AS "userId", u.username, u.email, u."profilePhoto"
+    FROM posts p 
     JOIN users u ON p."userId" = u.id 
     ORDER BY p."createdAt" DESC  
     LIMIT 20; `
@@ -57,10 +59,16 @@ async function updatePost(userId, postId, description) {
   `, [description ,postId , userId]);
 }
 
-async function updateLikes(postId,likes) { 
-  console.log(likes);
+async function updateLikes(postId, likes) { 
   return await connection.query('UPDATE posts SET likes= $1 WHERE id= $2',[++likes,postId]);
 } 
+
+async function existLike(postId, userId) {
+  return await connection.query(`
+  SELECT * FROM "postLiked" 
+  WHERE "postId" = ($1) AND "userId" = ($2)
+  `, [postId, userId]);
+}
 
 async function updateDeslikes(postId,likes) { 
   console.log(likes);
@@ -76,5 +84,6 @@ export const postRepository = {
   deletingPost,
   updatePost,
   updateLikes, 
-  updateDeslikes
+  updateDeslikes,
+  existLike
 };
