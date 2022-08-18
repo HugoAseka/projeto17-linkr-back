@@ -1,6 +1,5 @@
 import connection from "../db/database.js";
 import urlMetadata from "url-metadata";
-import { response } from "express";
 
 async function createPost(token, newPost) {
   const { url, description } = newPost;
