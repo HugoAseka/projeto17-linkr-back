@@ -164,8 +164,8 @@ export async function comments(req,res) {
       return res.sendStatus(404);
     }
     if(comment.length < 255) {
-      await connection.query(`INSERT INTO comentaries (coment,"userId","postId") VALUES ($1,$2,$3)`,[comment,userId,postId]);
-      await connection.query(`UPDATE posts SET comments= $1 WHERE id= $2`,[++postExistence[0].comments,postId]); 
+      await postRepository.postCommentaries(comment,userId,postId);
+      await postRepository.updatePostComments(++postExistence[0].comments,postId);
     }
     return res.sendStatus(200);
   } catch (error) {

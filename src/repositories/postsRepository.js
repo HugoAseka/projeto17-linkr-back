@@ -123,6 +123,14 @@ async function repost(userId,postId) {
 
 async function updatePostsRepost(reposts,postId) { 
   return await connection.query(`UPDATE posts SET reposts= $1 WHERE id= $2`,[reposts,postId]);
+} 
+
+async function postCommentaries(comment,userId,postId) { 
+  return await connection.query(`INSERT INTO comentaries (coment,"userId","postId") VALUES ($1,$2,$3)`,[comment,userId,postId]);
+} 
+
+async function updatePostComments(comments,postId) { 
+  return await connection.query(`UPDATE posts SET comments= $1 WHERE id= $2`,[comments,postId]); 
 }
 
 export const postRepository = {
@@ -139,5 +147,7 @@ export const postRepository = {
   verifyOwnerPost, 
   sameRepost, 
   repost, 
-  updatePostsRepost
+  updatePostsRepost, 
+  postCommentaries, 
+  updatePostComments
 };
