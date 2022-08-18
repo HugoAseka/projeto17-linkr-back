@@ -7,7 +7,7 @@ import { commentValidation } from "../middlewares/commentMiddleware.js";
 
 const postsRouter = Router();
 
-postsRouter.get("/posts",getAllPosts);
+postsRouter.get("/posts/:limit",checkAuth,getAllPosts);
 postsRouter.post("/posts", checkAuth, insertPost);
 postsRouter.put("/like/:id",checkAuth, updateLike);
 postsRouter.delete("/posts/:id", checkAuth, deletePost);

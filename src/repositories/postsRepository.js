@@ -20,14 +20,43 @@ async function createPost(token, newPost) {
  
 }
 
-async function selectPosts() {
+async function selectPosts(limit) {
+  // return connection.query(
+  //   `SELECT p.id, p.url, p.description, p."urlDescription", p."urlImage", p."urlTitle", p.likes, u.id AS "userId", u.username, u.email, u."profilePhoto", 
+  //   "postLiked"."userId" AS usersLiked
+  //   FROM posts p 
+  //   JOIN users u 
+  //   ON p."userId" = u.id
+  //   JOIN "postLiked"
+  //   ON p.id = "postLiked"."postId"
+  //   ORDER BY p."createdAt" DESC  
+  //   LIMIT 20; `
+  // );
   return connection.query(
-    `SELECT p.id, p.url, p.description, p."urlDescription", p."urlImage", p."urlTitle", p.likes, u.id AS "userId", u.username, u.email, u."profilePhoto"
+    `SELECT json_build_object(
+      'id', p.id,
+      'url', p.url,
+      'description', p.description, 
+      'urlDescription', p."urlDescription",
+      'urlImage', p."urlImage", 
+      'urlTitle',  p."urlTitle", 
+      'likes', p.likes, 
+      'userId', u.id,
+      'username', u.username, 
+      'email', u.email, 
+      'profilePhoto', u."profilePhoto", 
+      'usersLiked', json_agg(json_build_object(
+        'userId', "postLiked"."userId"
+      )))
     FROM posts p 
-    JOIN users u ON p."userId" = u.id 
+    JOIN users u 
+    ON p."userId" = u.id
+    JOIN "postLiked"
+    ON p.id = "postLiked"."postId"
+    GROUP BY p.id, u.id
     ORDER BY p."createdAt" DESC  
-    LIMIT 20; `
-  );
+    LIMIT ${limit}; `);
+
 }
 
 async function dislikePost(userId,postId) { 
@@ -41,6 +70,7 @@ async function likePost(userId,postId) {
 async function existPost(postId) { 
   return await connection.query('SELECT * FROM posts WHERE id= $1',[postId]);
 }
+
 
 async function deletingPost(userId, postId) { 
   
