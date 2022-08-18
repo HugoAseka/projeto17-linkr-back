@@ -3,10 +3,11 @@ import { postRepository } from "../repositories/postsRepository.js";
 import { hashtagRepository } from "../repositories/hashtagRepository.js";
 
 export async function getAllPosts(req, res) {
-  const  limit  = parseInt(req.query.queryLimit);
+  const limit = parseInt(req.query.queryLimit);
   const userId = parseInt(req.query.userId);
-  const { rows: posts } = await postRepository.selectPosts(limit,userId);
-  return res.status(200).send(posts);
+  const x = await postRepository.selectPosts(limit, userId);
+
+  return res.status(200).send(x);
 }
 
 export async function insertPost(req, res) {
@@ -24,42 +25,48 @@ export async function insertPost(req, res) {
     return res.sendStatus(400);
   }
 
-  const { postId, userId } = await postRepository.createPost(token, newPost);
-  newHashtags.map(async (hashtag) => {
-    await hashtagRepository.newHashtag(hashtag);
-  });
+  try {
+    const { postId, userId } = await postRepository.createPost(token, newPost);
+    newHashtags.map(async (hashtag) => {
+      await hashtagRepository.newHashtag(hashtag);
+    });
 
-  newHashtags.map(async (hashtag) => {
-    await hashtagRepository.hashtagsPosts(hashtag, postId, userId);
-  });
+    newHashtags.map(async (hashtag) => {
+      await hashtagRepository.hashtagsPosts(hashtag, postId, userId);
+    });
 
-  res.sendStatus(200);
+    return res.sendStatus(200);
+  } catch {
+    return res.sendStatus(500);
+  }
 }
 
 export async function updateLike(req, res) {
   const postId = req.params.id;
   const likeDislike = req.body.postLiked;
   const userId = res.locals.userId;
-  
+
   try {
     const { rows: postExist } = await postRepository.existPost(postId);
     if (postExist.length === 0) {
       return res.sendStatus(404);
     }
-    const { rows: isLikedDisliked } = await postRepository.existLike(postId, userId);
+    const { rows: isLikedDisliked } = await postRepository.existLike(
+      postId,
+      userId
+    );
     if (likeDislike === "like") {
-
-      if(isLikedDisliked.length !== 0) {
+      if (isLikedDisliked.length !== 0) {
         return res.status(401).send("Você já curtiu esse post!");
       }
       await postRepository.updateLikes(postId, userId, postExist[0].likes);
       await postRepository.likePost(userId, postId);
       return res.send("Like").status(200);
-    } else if (likeDislike === "dislike"){
-      if(isLikedDisliked.length === 0) {
+    } else if (likeDislike === "dislike") {
+      if (isLikedDisliked.length === 0) {
         return res.status(401).send("Você já descurtiu esse post!");
       }
-      await postRepository.updateDeslikes(postId,postExist[0].likes);
+      await postRepository.updateDeslikes(postId, postExist[0].likes);
 
       await postRepository.dislikePost(userId, postId);
       return res.send("Dislike").status(204);
@@ -124,32 +131,36 @@ export async function editPost(request, response) {
   });
 
   response.status(200).send("ok");
+}
 
-} 
-
-export async function repost(req, res) { 
+export async function repost(req, res) {
   const userId = res.locals.userId;
-  const { postId } = req.params;  
+  const { postId } = req.params;
 
   try {
     const { rows: postExistence } = await postRepository.existPost(postId);
-    if(postExistence.length === 0) { 
+    if (postExistence.length === 0) {
       return res.sendStatus(404);
     }
-    const { rows: verifyOwner } = await postRepository.verifyOwnerPost(postId,userId);
-    if(verifyOwner.length !== 0) { 
+    const { rows: verifyOwner } = await postRepository.verifyOwnerPost(
+      postId,
+      userId
+    );
+    if (verifyOwner.length !== 0) {
       return res.status(401).send("This is your post, you can't repost it!");
-    } 
-    const { rows: repostSamePost } = await postRepository.sameRepost(userId,postId)
-    if(repostSamePost.length !== 0) { 
+    }
+    const { rows: repostSamePost } = await postRepository.sameRepost(
+      userId,
+      postId
+    );
+    if (repostSamePost.length !== 0) {
       return res.status(401).send("You already reposted it!");
     }
-    await postRepository.repost(userId,postId);
-    await postRepository.updatePostsRepost(++postExistence[0].reposts,postId);
+    await postRepository.repost(userId, postId);
+    await postRepository.updatePostsRepost(++postExistence[0].reposts, postId);
     return res.sendStatus(200);
   } catch (error) {
     console.log(error);
     return res.sendStatus(500);
   }
 }
-
