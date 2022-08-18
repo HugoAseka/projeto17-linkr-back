@@ -6,7 +6,7 @@ import { hashtagRepository } from "../repositories/hashtagRepository.js";
 
 export async function getAllPosts(req, res) {
   const { rows: posts } = await postRepository.selectPosts();
-  return res.status(200).send(posts);
+  return res.status(200).send(posts.map(object => object.json_build_object));
 }
 
 export async function insertPost(req, res) {
