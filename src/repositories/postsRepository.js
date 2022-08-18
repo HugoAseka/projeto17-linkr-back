@@ -21,7 +21,7 @@ async function createPost(token, newPost) {
  
 }
 
-async function selectPosts() {
+async function selectPosts(limit) {
   // return connection.query(
   //   `SELECT p.id, p.url, p.description, p."urlDescription", p."urlImage", p."urlTitle", p.likes, u.id AS "userId", u.username, u.email, u."profilePhoto", 
   //   "postLiked"."userId" AS usersLiked
@@ -56,7 +56,7 @@ async function selectPosts() {
     ON p.id = "postLiked"."postId"
     GROUP BY p.id, u.id
     ORDER BY p."createdAt" DESC  
-    LIMIT 20; `);
+    LIMIT ${limit}; `);
 
 }
 
@@ -71,6 +71,7 @@ async function likePost(userId,postId) {
 async function existPost(postId) { 
   return await connection.query('SELECT * FROM posts WHERE id= $1',[postId]);
 }
+
 
 async function deletingPost(userId, postId) { 
   
@@ -104,6 +105,27 @@ async function updateDeslikes(postId,likes) {
   return await connection.query('UPDATE posts SET likes= $1 WHERE id= $2',[--likes,postId]);
 }
 
+async function verifyOwnerPost(postId,userId) { 
+  return await connection.query(`
+    SELECT u.id AS "ownerId", p.* 
+    FROM posts p
+    JOIN users u ON p."userId" = u.id
+    WHERE p.id= $1 AND u.id= $2
+    `,[postId,userId]);
+}
+
+async function sameRepost(userId,postId) { 
+  return await connection.query(`SELECT * FROM "rePosts" WHERE "userId"= $1 AND "postId"= $2`,[userId,postId]);
+}
+
+async function repost(userId,postId) { 
+  return await connection.query(`INSERT INTO "rePosts" ("userId","postId") VALUES ($1,$2)`,[userId,postId]);
+}
+
+async function updatePostsRepost(reposts,postId) { 
+  return await connection.query(`UPDATE posts SET reposts= $1 WHERE id= $2`,[reposts,postId]);
+}
+
 export const postRepository = {
   createPost,
   selectPosts,
@@ -114,5 +136,9 @@ export const postRepository = {
   updatePost,
   updateLikes, 
   updateDeslikes,
-  existLike
+  existLike, 
+  verifyOwnerPost, 
+  sameRepost, 
+  repost, 
+  updatePostsRepost
 };
