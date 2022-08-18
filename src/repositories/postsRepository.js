@@ -45,6 +45,8 @@ async function selectPosts(limit) {
       'username', u.username, 
       'email', u.email, 
       'profilePhoto', u."profilePhoto", 
+      'reposts', p.reposts, 
+      'comments', p.comments,
       'usersLiked', json_agg(json_build_object(
         'userId', "postLiked"."userId"
       )))
