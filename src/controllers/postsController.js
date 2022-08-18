@@ -6,7 +6,7 @@ import connection from "../db/database.js";
 export async function getAllPosts(req, res) {
   const { limit } = req.params;
   const { rows: posts } = await postRepository.selectPosts(limit);
-  return res.status(200).send(posts);
+  return res.status(200).send(posts.map(object => object.json_build_object));
 }
 
 export async function insertPost(req, res) {
