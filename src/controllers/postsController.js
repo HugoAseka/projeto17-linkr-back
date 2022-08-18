@@ -135,26 +135,21 @@ export async function repost(req, res) {
   const { postId } = req.params;  
 
   try {
-    const { rows: postExistence } = await connection.query(`SELECT * FROM posts WHERE id= $1`,[postId]);
+    const { rows: postExistence } = await postRepository.existPost(postId);
     if(postExistence.length === 0) { 
       return res.sendStatus(404);
     }
-    const { rows: verifyOwner } = await connection.query(`
-      SELECT u.id AS "ownerId", p.* 
-      FROM posts p
-      JOIN users u ON p."userId" = u.id
-      WHERE p.id= $1 AND u.id= $2
-    `,[postId,userId]);
+    const { rows: verifyOwner } = await postRepository.verifyOwnerPost(postId,userId);
     if(verifyOwner.length !== 0) { 
       return res.status(401).send("This is your post, you can't repost it!");
     } 
-    const { rows: repostSamePost } = await connection.query(`SELECT * FROM "rePosts" WHERE "userId"= $1 AND "postId"= $2`,[userId,postId]);
+    const { rows: repostSamePost } = await postRepository.sameRepost(userId,postId)
     if(repostSamePost.length !== 0) { 
       return res.status(401).send("You already reposted it!");
     }
-    await connection.query(`INSERT INTO "rePosts" ("userId","postId") VALUES ($1,$2)`,[userId,postId]);
-    await connection.query(`UPDATE posts SET reposts= $1 WHERE id= $2`,[++postExistence[0].reposts,postId]);
-    return res.send(verifyOwner).status(200);
+    await postRepository.repost(userId,postId);
+    await postRepository.updatePostsRepost(++postExistence[0].reposts,postId);
+    return res.sendStatus(200);
   } catch (error) {
     console.log(error);
     return res.sendStatus(500);

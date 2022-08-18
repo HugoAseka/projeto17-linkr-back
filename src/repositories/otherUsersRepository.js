@@ -12,7 +12,8 @@ async function getUserClicked(id) {
             'urlDescription', p."urlDescription", 
             'urlTitle', p."urlTitle", 
             'urlImage', p."urlImage", 
-            'likes', p.likes
+            'likes', p.likes, 
+            'reposts', p.reposts
         )))
         FROM users u
         JOIN posts p ON p."userId" = u.id
@@ -38,6 +39,30 @@ async function getUsersbyName(username, userId) {
     `,values: [`${username}%`, userId]}); 
 }
 
+async function getReposted(id) { 
+    return await connection.query(`SELECT json_build_object( 
+        'reposts', json_agg(json_build_object(
+            'id', p.id, 
+            'url', p.url, 
+            'description', p.description,
+            'urlDescription', p."urlDescription", 
+            'urlTitle', p."urlTitle", 
+            'urlImage', p."urlImage", 
+            'likes', p.likes, 
+            'reposts', p.reposts, 
+            'ownerUsername', uu.username,
+            'ownerProfilePhoto', uu."profilePhoto", 
+            'repostedUsername', u.username, 
+            'repostedUserId', u.id
+        )))
+        FROM posts p 
+        JOIN "rePosts" rp ON rp."postId"=p.id
+        JOIN users u ON u.id = rp."userId"
+        JOIN users uu ON p."userId" = uu.id
+        WHERE u.id= $1
+    `,[id]);
+}
+
 export const otherUsersRepository = { 
-    getUserClicked, getUsersbyName, getUserWithoutPosts
+    getUserClicked, getUsersbyName, getUserWithoutPosts, getReposted
 }

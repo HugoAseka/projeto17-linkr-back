@@ -6,11 +6,12 @@ export async function getClickedUser(req,res) {
     const { id } = req.params; 
 
     try {
-        const { rows: user } = await otherUsersRepository.getUserClicked(id);
+        let { rows: user } = await otherUsersRepository.getUserClicked(id);
+        const { rows: repostsByUser } = await otherUsersRepository.getReposted(id);
         if(user.length===0) { 
             const { rows: userZeroPost } = await otherUsersRepository.getUserWithoutPosts(id);
             if(userZeroPost.length !== 0) { 
-                const userZero = [ 
+                let userZero = [ 
                     { 
                         id: userZeroPost[0].id,
                         username: userZeroPost[0].username,
@@ -18,11 +19,26 @@ export async function getClickedUser(req,res) {
                         posts: []
                     }
                 ]; 
+                if(!repostsByUser.map(u => u.json_build_object)[0].reposts) { 
+                    userZero.push({
+                        reposts: []
+                    }); 
+                    return res.send(userZero).status(200);
+                }
+                userZero.push(repostsByUser.map(u => u.json_build_object)[0]);
                 return res.send(userZero).status(200);
             }
             return res.sendStatus(404);
         }
-        return res.send(user.map(u => u.json_build_object)).status(200);
+        if( repostsByUser.length === 0) { 
+            user.push({
+                reposts: []
+            }) 
+            return res.send(user).status(200);
+        }
+        user = user.map(u => u.json_build_object);
+        user.push(repostsByUser.map(u => u.json_build_object)[0]);
+        return res.send(user).status(200);
     } catch (error) {
         console.log(error); 
         return res.sendStatus(500);
