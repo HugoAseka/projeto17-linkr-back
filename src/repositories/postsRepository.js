@@ -1,6 +1,6 @@
 import connection from "../db/database.js";
 import urlMetadata from "url-metadata";
-import { response } from "express";
+
 
 async function createPost(token, newPost) {
   const { url, description } = newPost;
@@ -21,9 +21,11 @@ async function createPost(token, newPost) {
  
 }
 
-async function selectPosts(limit) {
-  return connection.query(
+async function selectPosts(limit,userId) {
 
+  const {rows:followers} = await connection.query(`SELECT "followerId" FROM followers WHERE "mainUserId" = $1 `,[userId])
+
+  const {rows:posts} = await  connection.query(
     `SELECT p.id, p.url, p.description, p."urlDescription", p."urlImage", p."urlTitle", p.likes, u.id AS "userId", u.username, u.email, u."profilePhoto"
     FROM posts p 
 
@@ -31,6 +33,25 @@ async function selectPosts(limit) {
     ORDER BY p."createdAt" DESC  
     LIMIT ${limit}; `
   );
+
+  // return posts.filter((post) => {
+  //     for(let i = 0 ; i < followers.length ; i++){
+  //       if()
+  //     }
+
+  // })
+
+  
+
+  // return connection.query(
+
+  //   `SELECT p.id, p.url, p.description, p."urlDescription", p."urlImage", p."urlTitle", p.likes, u.id AS "userId", u.username, u.email, u."profilePhoto"
+  //   FROM posts p 
+
+  //   JOIN users u ON p."userId" = u.id 
+  //   ORDER BY p."createdAt" DESC  
+  //   LIMIT ${limit}; `
+  // );
 }
 
 async function dislikePost(userId,postId) { 

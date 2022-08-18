@@ -1,11 +1,11 @@
 import { postSchema } from "../schemas/postsSchema.js";
 import { postRepository } from "../repositories/postsRepository.js";
 import { hashtagRepository } from "../repositories/hashtagRepository.js";
-import connection from "../db/database.js";
 
 export async function getAllPosts(req, res) {
-  const { limit } = req.params;
-  const { rows: posts } = await postRepository.selectPosts(limit);
+  const  limit  = parseInt(req.query.queryLimit);
+  const userId = parseInt(req.query.userId);
+  const { rows: posts } = await postRepository.selectPosts(limit,userId);
   return res.status(200).send(posts);
 }
 
