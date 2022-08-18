@@ -1,6 +1,7 @@
 import { postSchema } from "../schemas/postsSchema.js";
 import { postRepository } from "../repositories/postsRepository.js";
 import { hashtagRepository } from "../repositories/hashtagRepository.js";
+import connection from "../db/database.js";
 
 export async function getAllPosts(req, res) {
   const { limit } = req.params;
@@ -39,21 +40,31 @@ export async function updateLike(req, res) {
   const postId = req.params.id;
   const likeDislike = req.body.postLiked;
   const userId = res.locals.userId;
-
+  
   try {
     const { rows: postExist } = await postRepository.existPost(postId);
     if (postExist.length === 0) {
       return res.sendStatus(404);
     }
+    const { rows: isLikedDisliked } = await postRepository.existLike(postId, userId);
     if (likeDislike === "like") {
-      await postRepository.updateLikes(postId, postExist[0].likes);
+
+      if(isLikedDisliked.length !== 0) {
+        return res.status(401).send("Você já curtiu esse post!");
+      }
+      await postRepository.updateLikes(postId, userId, postExist[0].likes);
       await postRepository.likePost(userId, postId);
       return res.send("Like").status(200);
-    } else {
-      await postRepository.updateDeslikes(postId, postExist[0].likes);
+    } else if (likeDislike === "dislike"){
+      if(isLikedDisliked.length === 0) {
+        return res.status(401).send("Você já descurtiu esse post!");
+      }
+      await postRepository.updateDeslikes(postId,postExist[0].likes);
+
       await postRepository.dislikePost(userId, postId);
       return res.send("Dislike").status(204);
     }
+    return res.sendStatus(500);
   } catch (error) {
     console.log(error);
     return res.sendStatus(500);
@@ -113,4 +124,32 @@ export async function editPost(request, response) {
   });
 
   response.status(200).send("ok");
+
+} 
+
+export async function repost(req, res) { 
+  const userId = res.locals.userId;
+  const { postId } = req.params;  
+
+  try {
+    const { rows: postExistence } = await postRepository.existPost(postId);
+    if(postExistence.length === 0) { 
+      return res.sendStatus(404);
+    }
+    const { rows: verifyOwner } = await postRepository.verifyOwnerPost(postId,userId);
+    if(verifyOwner.length !== 0) { 
+      return res.status(401).send("This is your post, you can't repost it!");
+    } 
+    const { rows: repostSamePost } = await postRepository.sameRepost(userId,postId)
+    if(repostSamePost.length !== 0) { 
+      return res.status(401).send("You already reposted it!");
+    }
+    await postRepository.repost(userId,postId);
+    await postRepository.updatePostsRepost(++postExistence[0].reposts,postId);
+    return res.sendStatus(200);
+  } catch (error) {
+    console.log(error);
+    return res.sendStatus(500);
+  }
 }
+

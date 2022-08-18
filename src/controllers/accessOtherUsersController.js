@@ -6,13 +6,39 @@ export async function getClickedUser(req,res) {
     const { id } = req.params; 
 
     try {
-        const { rows: user } = await otherUsersRepository.getUserClicked(id)
+        let { rows: user } = await otherUsersRepository.getUserClicked(id);
+        const { rows: repostsByUser } = await otherUsersRepository.getReposted(id);
         if(user.length===0) { 
-            const { rows: userZeroPost } = connection.query(`SELECT * FROM users WHERE id= $1`,[id]);
-            console.log(userZeroPost);
+            const { rows: userZeroPost } = await otherUsersRepository.getUserWithoutPosts(id);
+            if(userZeroPost.length !== 0) { 
+                let userZero = [ 
+                    { 
+                        id: userZeroPost[0].id,
+                        username: userZeroPost[0].username,
+                        profilePhoto: userZeroPost[0].profilePhoto,
+                        posts: []
+                    }
+                ]; 
+                if(!repostsByUser.map(u => u.json_build_object)[0].reposts) { 
+                    userZero.push({
+                        reposts: []
+                    }); 
+                    return res.send(userZero).status(200);
+                }
+                userZero.push(repostsByUser.map(u => u.json_build_object)[0]);
+                return res.send(userZero).status(200);
+            }
             return res.sendStatus(404);
         }
-        return res.send(user.map(u => u.json_build_object)).status(200);
+        if( repostsByUser.length === 0) { 
+            user.push({
+                reposts: []
+            }) 
+            return res.send(user).status(200);
+        }
+        user = user.map(u => u.json_build_object);
+        user.push(repostsByUser.map(u => u.json_build_object)[0]);
+        return res.send(user).status(200);
     } catch (error) {
         console.log(error); 
         return res.sendStatus(500);
@@ -21,10 +47,11 @@ export async function getClickedUser(req,res) {
 
 export async function getUserByName(req,res) { 
     const { username } = req.body; 
-
+    if (!username) return res.sendStatus(422)
+    const userId = parseInt(res.locals.userId);
     try {
         if(username.length>=3) { 
-            const { rows: findUsers } = await otherUsersRepository.getUsersbyName(username);
+            const { rows: findUsers } = await otherUsersRepository.getUsersbyName(username, userId);
             if(findUsers.length===0) { 
                 return res.sendStatus(404);
             }
@@ -50,7 +77,7 @@ export async function checkFollow (req, res) {
         SELECT * from followers
         WHERE "mainUserId" = $1 AND "followerId" = $2
         `, [friendId.friendId, userId]);
-        if (searchFollow.rowCount === 0) return res.status(404).json({
+        if (searchFollow.rowCount === 0) return res.status(200).json({
             isFollower: false
         });
         return res.status(200).json({
