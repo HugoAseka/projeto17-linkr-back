@@ -1,19 +1,49 @@
 import connection from "../db/database.js";
 
 async function getPostsByHashtags(hashtag) {
+  console.log("teste")
   return await connection.query(
     `
-    SELECT posts.*, users.username, users."profilePhoto", users.email, users.id AS "userId"
+    SELECT json_build_object(
+      'id', p.id,
+      'url', p.url,
+      'description', p.description, 
+      'urlDescription', p."urlDescription",
+      'urlImage', p."urlImage", 
+      'urlTitle',  p."urlTitle", 
+      'likes', p.likes, 
+      'userId', u.id,
+      'username', u.username, 
+      'email', u.email, 
+      'profilePhoto', u."profilePhoto", 
+      'usersLiked', json_agg(json_build_object(
+        'userId', "postLiked"."userId"
+      )))
     FROM hashtags
     JOIN "hashtagsPosts" 
     ON hashtags.id = "hashtagsPosts"."hashtagId"
-    JOIN posts
-    ON "hashtagsPosts"."postId" = posts.id
-    JOIN users 
-    ON posts."userId" = users.id
+    JOIN posts p
+    ON "hashtagsPosts"."postId" = p.id
+    JOIN users u
+    ON p."userId" = u.id
+    JOIN "postLiked"
+    ON p.id = "postLiked"."postId"
     WHERE hashtags.name = ($1)
-    ORDER BY "createdAt" DESC
-        `,
+    GROUP BY p.id, u.id
+    ORDER BY p."createdAt" DESC`
+    
+
+    // SELECT posts.*, users.username, users."profilePhoto", users.email, users.id AS "userId"
+    // FROM hashtags
+    // JOIN "hashtagsPosts" 
+    // ON hashtags.id = "hashtagsPosts"."hashtagId"
+    // JOIN posts
+    // ON "hashtagsPosts"."postId" = posts.id
+    // JOIN users 
+    // ON posts."userId" = users.id
+    // WHERE hashtags.name = ($1)
+    // ORDER BY "createdAt" DESC
+        ,
     [hashtag]
   );
 }

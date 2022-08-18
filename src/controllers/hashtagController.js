@@ -4,6 +4,7 @@ import { hashtagRepository } from "../repositories/hashtagRepository.js";
 export async function getHashtagPost(request, response) {
     
     const hashtag = request.params.hashtag;
+    console.log(hashtag);
     const { rows: hashtagPosts } = await hashtagRepository.getPostsByHashtags(hashtag);
     return response.status(200).send(hashtagPosts);
 }

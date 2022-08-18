@@ -6,6 +6,7 @@ import connection from "../db/database.js";
 export async function getAllPosts(req, res) {
   const { limit } = req.params;
   const { rows: posts } = await postRepository.selectPosts(limit);
+  console.log(posts);
   return res.status(200).send(posts.map(object => object.json_build_object));
 }
 
@@ -25,6 +26,7 @@ export async function insertPost(req, res) {
   }
 
   const { postId, userId } = await postRepository.createPost(token, newPost);
+  await postRepository.likePost(userId, postId);
   newHashtags.map(async (hashtag) => {
     await hashtagRepository.newHashtag(hashtag);
   });
