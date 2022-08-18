@@ -7,7 +7,7 @@ dotenv.config();
 const router = Router();
 
 router.get("/users/:id", checkAuth, getClickedUser);
-router.post("/other-users",getUserByName);
+router.post("/other-users", checkAuth, getUserByName);
 router.post("/check-follow", checkAuth, checkFollow);
 router.post("/follow", checkAuth, followFriend);
 

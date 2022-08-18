@@ -21,10 +21,11 @@ export async function getClickedUser(req,res) {
 
 export async function getUserByName(req,res) { 
     const { username } = req.body; 
-
+    if (!username) return res.sendStatus(422)
+    const userId = parseInt(res.locals.userId);
     try {
         if(username.length>=3) { 
-            const { rows: findUsers } = await otherUsersRepository.getUsersbyName(username);
+            const { rows: findUsers } = await otherUsersRepository.getUsersbyName(username, userId);
             if(findUsers.length===0) { 
                 return res.sendStatus(404);
             }
@@ -50,7 +51,7 @@ export async function checkFollow (req, res) {
         SELECT * from followers
         WHERE "mainUserId" = $1 AND "followerId" = $2
         `, [friendId.friendId, userId]);
-        if (searchFollow.rowCount === 0) return res.status(404).json({
+        if (searchFollow.rowCount === 0) return res.status(200).json({
             isFollower: false
         });
         return res.status(200).json({
