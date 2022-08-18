@@ -75,6 +75,27 @@ async function updateDeslikes(postId,likes) {
   return await connection.query('UPDATE posts SET likes= $1 WHERE id= $2',[--likes,postId]);
 }
 
+async function verifyOwnerPost(postId,userId) { 
+  return await connection.query(`
+    SELECT u.id AS "ownerId", p.* 
+    FROM posts p
+    JOIN users u ON p."userId" = u.id
+    WHERE p.id= $1 AND u.id= $2
+    `,[postId,userId]);
+}
+
+async function sameRepost(userId,postId) { 
+  return await connection.query(`SELECT * FROM "rePosts" WHERE "userId"= $1 AND "postId"= $2`,[userId,postId]);
+}
+
+async function repost(userId,postId) { 
+  return await connection.query(`INSERT INTO "rePosts" ("userId","postId") VALUES ($1,$2)`,[userId,postId]);
+}
+
+async function updatePostsRepost(reposts,postId) { 
+  return await connection.query(`UPDATE posts SET reposts= $1 WHERE id= $2`,[reposts,postId]);
+}
+
 export const postRepository = {
   createPost,
   selectPosts,
@@ -85,5 +106,9 @@ export const postRepository = {
   updatePost,
   updateLikes, 
   updateDeslikes,
-  existLike
+  existLike, 
+  verifyOwnerPost, 
+  sameRepost, 
+  repost, 
+  updatePostsRepost
 };
