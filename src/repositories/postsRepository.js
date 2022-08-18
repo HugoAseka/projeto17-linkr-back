@@ -21,13 +21,15 @@ async function createPost(token, newPost) {
  
 }
 
-async function selectPosts() {
+async function selectPosts(limit) {
   return connection.query(
+
     `SELECT p.id, p.url, p.description, p."urlDescription", p."urlImage", p."urlTitle", p.likes, u.id AS "userId", u.username, u.email, u."profilePhoto"
     FROM posts p 
+
     JOIN users u ON p."userId" = u.id 
     ORDER BY p."createdAt" DESC  
-    LIMIT 20; `
+    LIMIT ${limit}; `
   );
 }
 
@@ -42,6 +44,7 @@ async function likePost(userId,postId) {
 async function existPost(postId) { 
   return await connection.query('SELECT * FROM posts WHERE id= $1',[postId]);
 }
+
 
 async function deletingPost(userId, postId) { 
   

@@ -3,10 +3,9 @@ import { postRepository } from "../repositories/postsRepository.js";
 import { hashtagRepository } from "../repositories/hashtagRepository.js";
 import connection from "../db/database.js";
 
-
-
 export async function getAllPosts(req, res) {
-  const { rows: posts } = await postRepository.selectPosts();
+  const { limit } = req.params;
+  const { rows: posts } = await postRepository.selectPosts(limit);
   return res.status(200).send(posts);
 }
 
@@ -19,25 +18,22 @@ export async function insertPost(req, res) {
 
   const arr = description.split(" ");
   const hashtags = arr.filter((str) => str[0] === "#");
-  const newHashtags = hashtags.map(string => string.replace("#", ""));
+  const newHashtags = hashtags.map((string) => string.replace("#", ""));
 
   if (error) {
     return res.sendStatus(400);
   }
 
-  
-    const {postId,userId} = await postRepository.createPost(token, newPost);
-    newHashtags.map(async (hashtag) => {
-      await hashtagRepository.newHashtag(hashtag);
-    });
-   
-    newHashtags.map(async (hashtag) => {
-      await hashtagRepository.hashtagsPosts(hashtag, postId,userId);
-    });
+  const { postId, userId } = await postRepository.createPost(token, newPost);
+  newHashtags.map(async (hashtag) => {
+    await hashtagRepository.newHashtag(hashtag);
+  });
 
-    
-    res.sendStatus(200);
- 
+  newHashtags.map(async (hashtag) => {
+    await hashtagRepository.hashtagsPosts(hashtag, postId, userId);
+  });
+
+  res.sendStatus(200);
 }
 
 export async function updateLike(req, res) {
@@ -52,6 +48,7 @@ export async function updateLike(req, res) {
     }
     const { rows: isLikedDisliked } = await postRepository.existLike(postId, userId);
     if (likeDislike === "like") {
+
       if(isLikedDisliked.length !== 0) {
         return res.status(401).send("Você já curtiu esse post!");
       }
@@ -63,6 +60,7 @@ export async function updateLike(req, res) {
         return res.status(401).send("Você já descurtiu esse post!");
       }
       await postRepository.updateDeslikes(postId,postExist[0].likes);
+
       await postRepository.dislikePost(userId, postId);
       return res.send("Dislike").status(204);
     }
@@ -78,11 +76,11 @@ export async function deletePost(request, response) {
     const postId = request.params.id;
     const userId = response.locals.userId;
     const { rows: post } = await postRepository.existPost(postId);
-    
-    if(post.length === 0) {
+
+    if (post.length === 0) {
       return response.status(404).send("Post não encontrado!");
     }
-    if(post[0].userId !== userId) {
+    if (post[0].userId !== userId) {
       return response.status(401).send("Usuário não pode deletar esse post!");
     }
     await hashtagRepository.deletingHashtagPost(userId, postId);
@@ -93,22 +91,20 @@ export async function deletePost(request, response) {
   } catch {
     return response.status(500).send("Erro no servidor");
   }
-  
 }
 
 export async function editPost(request, response) {
-
-  const description = request.body.description
+  const description = request.body.description;
   const postId = request.params.id;
   const userId = response.locals.userId;
 
   const { rows: post } = await postRepository.existPost(postId);
 
-  if(post.length === 0) {
-    return response.status(404).send("Post não encontrado")
+  if (post.length === 0) {
+    return response.status(404).send("Post não encontrado");
   }
 
-  if(post[0].userId !== userId) {
+  if (post[0].userId !== userId) {
     return response.status(401).send("Usuário não pode editar esse post!");
   }
 
@@ -117,17 +113,18 @@ export async function editPost(request, response) {
 
   const arr = description.split(" ");
   const hashtags = arr.filter((str) => str[0] === "#");
-  const newHashtags = hashtags.map(string => string.replace("#", ""));
+  const newHashtags = hashtags.map((string) => string.replace("#", ""));
 
-    newHashtags.map(async (hashtag) => {
-      await hashtagRepository.newHashtag(hashtag);
-    });
-   
-    newHashtags.map(async (hashtag) => {
-      await hashtagRepository.hashtagsPosts(hashtag, postId,userId);
-    });
+  newHashtags.map(async (hashtag) => {
+    await hashtagRepository.newHashtag(hashtag);
+  });
+
+  newHashtags.map(async (hashtag) => {
+    await hashtagRepository.hashtagsPosts(hashtag, postId, userId);
+  });
 
   response.status(200).send("ok");
+
 } 
 
 export async function repost(req, res) { 
@@ -155,3 +152,4 @@ export async function repost(req, res) {
     return res.sendStatus(500);
   }
 }
+
