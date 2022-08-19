@@ -163,4 +163,27 @@ export async function repost(req, res) {
     console.log(error);
     return res.sendStatus(500);
   }
+
+} 
+
+export async function comments(req,res) { 
+  const userId = res.locals.userId;
+  const { postId } = req.params; 
+  const { comment } = req.body;
+
+  try {
+    const { rows: postExistence } = await postRepository.existPost(postId);
+    if(postExistence.length === 0) { 
+      return res.sendStatus(404);
+    }
+    if(comment.length < 255) {
+      await postRepository.postCommentaries(comment,userId,postId);
+      await postRepository.updatePostComments(++postExistence[0].comments,postId);
+    }
+    return res.sendStatus(200);
+  } catch (error) {
+    console.log(error);
+    return res.sendStatus(500);
+  }
+
 }

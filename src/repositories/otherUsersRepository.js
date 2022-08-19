@@ -58,6 +58,7 @@ async function getReposted(id) {
             'reposts', p.reposts, 
             'ownerUsername', uu.username,
             'ownerProfilePhoto', uu."profilePhoto", 
+            'ownerId', uu.id,
             'repostedUsername', u.username, 
             'repostedUserId', u.id
         )))

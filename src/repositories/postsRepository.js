@@ -41,6 +41,8 @@ async function selectPosts(limit, userId) {
       'username', u.username, 
       'email', u.email, 
       'profilePhoto', u."profilePhoto", 
+      'reposts', p.reposts, 
+      'comments', p.comments,
       'usersLiked', json_agg(json_build_object(
         'userId', "postLiked"."userId"
       )))
@@ -162,11 +164,16 @@ async function repost(userId, postId) {
   );
 }
 
-async function updatePostsRepost(reposts, postId) {
-  return await connection.query(`UPDATE posts SET reposts= $1 WHERE id= $2`, [
-    reposts,
-    postId,
-  ]);
+async function updatePostsRepost(reposts,postId) { 
+  return await connection.query(`UPDATE posts SET reposts= $1 WHERE id= $2`,[reposts,postId]);
+} 
+
+async function postCommentaries(comment,userId,postId) { 
+  return await connection.query(`INSERT INTO comentaries (coment,"userId","postId") VALUES ($1,$2,$3)`,[comment,userId,postId]);
+} 
+
+async function updatePostComments(comments,postId) { 
+  return await connection.query(`UPDATE posts SET comments= $1 WHERE id= $2`,[comments,postId]); 
 }
 
 export const postRepository = {
@@ -179,9 +186,12 @@ export const postRepository = {
   updatePost,
   updateLikes,
   updateDeslikes,
-  existLike,
-  verifyOwnerPost,
-  sameRepost,
-  repost,
-  updatePostsRepost,
+  existLike, 
+  verifyOwnerPost, 
+  sameRepost, 
+  repost, 
+  updatePostsRepost, 
+  postCommentaries, 
+  updatePostComments
+
 };
