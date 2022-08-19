@@ -1,6 +1,7 @@
 import { postSchema } from "../schemas/postsSchema.js";
 import { postRepository } from "../repositories/postsRepository.js";
 import { hashtagRepository } from "../repositories/hashtagRepository.js";
+import connection from "../db/database.js";
 
 export async function getAllPosts(req, res) {
   const limit = parseInt(req.query.queryLimit);
@@ -10,7 +11,8 @@ export async function getAllPosts(req, res) {
   try {
     const posts = await postRepository.selectPosts(limit, userId);
     return res.status(200).send(posts);
-  } catch {
+  } catch(error) {
+    console.log(error);
     return res.sendStatus(500);
   }
 }
@@ -185,5 +187,27 @@ export async function comments(req,res) {
     console.log(error);
     return res.sendStatus(500);
   }
+}
 
+export async function getComments(req,res) { 
+  const { id } = req.params;
+
+  try {
+    const { rows: postComments } = await connection.query(`SELECT json_build_object(
+      'postId', c."postId",  
+      'allComments', json_agg(json_build_object( 
+        'coment', c.coment, 
+        'userId', c."userId",
+        'username', u.username, 
+        'profilePhoto', u."profilePhoto"
+        )))
+        FROM comentaries c 
+        JOIN users u ON u.id = c."userId"
+        GROUP BY c."postId"
+      `); 
+      return res.send(postComments.map((u) => u.json_build_object)).status(200);
+  } catch (error) {
+    console.log(error);
+    return res.sendStatus(500);
+  }
 }

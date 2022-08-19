@@ -1,4 +1,4 @@
-import { comments, deletePost, editPost, getAllPosts, insertPost, repost, updateLike } from "../controllers/postsController.js";
+import { comments, deletePost, editPost, getAllPosts, getComments, insertPost, repost, updateLike } from "../controllers/postsController.js";
 import { Router } from "express";
 import { checkAuth } from "../middlewares/authMiddleware.js";
 import { postValidator } from "../middlewares/postValidator.js";
@@ -14,5 +14,6 @@ postsRouter.delete("/posts/:id", checkAuth, deletePost);
 postsRouter.put("/posts/:id", checkAuth, postValidator.updatePostValidator, editPost);
 postsRouter.post("/repost/:postId", checkAuth, repost); 
 postsRouter.post("/comments/:postId", checkAuth, commentValidation ,comments);
+postsRouter.get("/comments/:id",checkAuth,getComments);
 
 export default postsRouter;

@@ -14,7 +14,8 @@ async function getUserClicked(id) {
             'urlTitle', p."urlTitle", 
             'urlImage', p."urlImage", 
             'likes', p.likes, 
-            'reposts', p.reposts
+            'reposts', p.reposts, 
+            'comments', p.comments
         )))
         FROM users u
         JOIN posts p ON p."userId" = u.id
