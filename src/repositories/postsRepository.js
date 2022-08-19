@@ -24,7 +24,7 @@ async function createPost(token, newPost) {
 
 async function selectPosts(limit, userId) {
   const { rows: followers } = await connection.query(
-    `SELECT "followerId" FROM followers WHERE "mainUserId" = $1 `,
+    `SELECT "mainUserId" FROM followers WHERE "followerId" = $1 `,
     [userId]
   );
 

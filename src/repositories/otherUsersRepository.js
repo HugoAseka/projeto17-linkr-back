@@ -73,7 +73,7 @@ async function getReposted(id) {
 }
 async function hasFollowed(userId) {
   const { rows: followers } = await connection.query(
-    `SELECT "followerId" FROM followers WHERE "mainUserId" = $1 `,
+    `SELECT "mainUserId" FROM followers WHERE "followerId" = $1 `,
     [userId]
   );
 
