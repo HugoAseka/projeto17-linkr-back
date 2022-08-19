@@ -81,6 +81,7 @@ export async function updateLike(req, res) {
 }
 
 export async function deletePost(request, response) {
+  
   try {
     const postId = request.params.id;
     const userId = response.locals.userId;
