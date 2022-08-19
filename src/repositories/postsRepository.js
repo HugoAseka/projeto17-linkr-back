@@ -61,7 +61,7 @@ async function selectPosts(limit, userId) {
   const posts = allPosts.filter((post) => {
     if (followers.length !== 0) {
       for (let i = 0; i < followers.length; i++) {
-        if (post.userId === followers[i].followerId || post.userId === userId)
+        if (post.userId === followers[i].mainUserId || post.userId === userId)
           return true;
       }
     } else {
