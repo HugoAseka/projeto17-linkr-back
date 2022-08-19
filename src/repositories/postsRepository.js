@@ -61,7 +61,7 @@ async function selectPosts(limit, userId) {
   const posts = allPosts.filter((post) => {
     if (followers.length !== 0) {
       for (let i = 0; i < followers.length; i++) {
-        if (post.userId === followers[i].followerId || post.userId === userId)
+        if (post.userId === followers[i].mainUserId || post.userId === userId)
           return true;
       }
     } else {
@@ -174,6 +174,22 @@ async function postCommentaries(comment,userId,postId) {
 
 async function updatePostComments(comments,postId) { 
   return await connection.query(`UPDATE posts SET comments= $1 WHERE id= $2`,[comments,postId]); 
+} 
+
+async function getComments(id) { 
+  return await connection.query(`SELECT json_build_object(
+    'postId', c."postId",  
+    'allComments', json_agg(json_build_object( 
+      'coment', c.coment, 
+      'userId', c."userId",
+      'username', u.username, 
+      'profilePhoto', u."profilePhoto"
+      )))
+      FROM comentaries c 
+      JOIN users u ON u.id = c."userId"
+      WHERE c."postId" = $1
+      GROUP BY c."postId"
+    `,[id]); 
 }
 
 export const postRepository = {
@@ -192,6 +208,7 @@ export const postRepository = {
   repost, 
   updatePostsRepost, 
   postCommentaries, 
-  updatePostComments
+  updatePostComments, 
+  getComments
 
 };
