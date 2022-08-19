@@ -2,7 +2,7 @@ import connection from "../db/database.js";
 
 async function getPostsByHashtags(hashtag) {
   console.log("teste")
-  return await connection.query(
+  const {rows : hashtagPosts} = await connection.query(
     `
     SELECT json_build_object(
       'id', p.id,
@@ -16,6 +16,8 @@ async function getPostsByHashtags(hashtag) {
       'username', u.username, 
       'email', u.email, 
       'profilePhoto', u."profilePhoto", 
+      'reposts', p.reposts, 
+      'comments', p.comments,
       'usersLiked', json_agg(json_build_object(
         'userId', "postLiked"."userId"
       )))
@@ -30,22 +32,11 @@ async function getPostsByHashtags(hashtag) {
     ON p.id = "postLiked"."postId"
     WHERE hashtags.name = ($1)
     GROUP BY p.id, u.id
-    ORDER BY p."createdAt" DESC`
-    
-
-    // SELECT posts.*, users.username, users."profilePhoto", users.email, users.id AS "userId"
-    // FROM hashtags
-    // JOIN "hashtagsPosts" 
-    // ON hashtags.id = "hashtagsPosts"."hashtagId"
-    // JOIN posts
-    // ON "hashtagsPosts"."postId" = posts.id
-    // JOIN users 
-    // ON posts."userId" = users.id
-    // WHERE hashtags.name = ($1)
-    // ORDER BY "createdAt" DESC
-        ,
+    ORDER BY p."createdAt" DESC`,
     [hashtag]
   );
+  
+  return hashtagPosts.map(object => object.json_build_object);
 }
 
 async function newHashtag(hashtag) {

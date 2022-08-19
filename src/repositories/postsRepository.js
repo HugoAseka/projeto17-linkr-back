@@ -12,7 +12,7 @@ async function createPost(token, newPost) {
 
   return urlMetadata(url).then(async (m) => {
     const { rows: postIdObj } = await connection.query(
-      `INSERT INTO posts (url,description,"userId","urlDescription","urlImage","urlTitle") VALUES ($1,$2,$3,$4,$5,$6) RETURNING id;`,
+      `INSERT INTO posts (url,description,"userId","urlDescription","urlImage","urlTitle", likes) VALUES ($1,$2,$3,$4,$5,$6, 1) RETURNING id;`,
       [url, description, user.id, m.description, m.image, m.title]
     );
     const userId = user.id;
@@ -61,7 +61,7 @@ async function selectPosts(limit, userId) {
   const posts = allPosts.filter((post) => {
     if (followers.length !== 0) {
       for (let i = 0; i < followers.length; i++) {
-        if (post.userId === followers[i].followerId || post.userId === userId)
+        if (post.userId === followers[i].mainUserId || post.userId === userId)
           return true;
       }
     } else {
