@@ -1,6 +1,5 @@
 import connection from "../db/database.js";
 import urlMetadata from "url-metadata";
-import { response } from "express";
 
 async function createPost(token, newPost) {
   const { url, description } = newPost;
@@ -8,32 +7,28 @@ async function createPost(token, newPost) {
     `SELECT u.id FROM users u JOIN sessions s ON u.id = s."userId" WHERE s.token = $1 `,
     [token]
   );
+
   const user = rows[0];
+
   return urlMetadata(url).then(async (m) => {
-    const {rows: postIdObj} = await connection.query(
-      `INSERT INTO posts (url,description,"userId","urlDescription","urlImage","urlTitle") VALUES ($1,$2,$3,$4,$5,$6) RETURNING id;` ,
+    const { rows: postIdObj } = await connection.query(
+      `INSERT INTO posts (url,description,"userId","urlDescription","urlImage","urlTitle") VALUES ($1,$2,$3,$4,$5,$6) RETURNING id;`,
       [url, description, user.id, m.description, m.image, m.title]
     );
     const userId = user.id;
     const postId = postIdObj[0].id;
-    return {userId, postId};
+
+    return { userId, postId };
   });
- 
 }
 
-async function selectPosts(limit) {
-  // return connection.query(
-  //   `SELECT p.id, p.url, p.description, p."urlDescription", p."urlImage", p."urlTitle", p.likes, u.id AS "userId", u.username, u.email, u."profilePhoto", 
-  //   "postLiked"."userId" AS usersLiked
-  //   FROM posts p 
-  //   JOIN users u 
-  //   ON p."userId" = u.id
-  //   JOIN "postLiked"
-  //   ON p.id = "postLiked"."postId"
-  //   ORDER BY p."createdAt" DESC  
-  //   LIMIT 20; `
-  // );
-  return connection.query(
+async function selectPosts(limit, userId) {
+  const { rows: followers } = await connection.query(
+    `SELECT "followerId" FROM followers WHERE "mainUserId" = $1 `,
+    [userId]
+  );
+
+  const { rows: postsJsonObj } = await connection.query(
     `SELECT json_build_object(
       'id', p.id,
       'url', p.url,
@@ -49,6 +44,7 @@ async function selectPosts(limit) {
       'usersLiked', json_agg(json_build_object(
         'userId', "postLiked"."userId"
       )))
+
     FROM posts p 
     JOIN users u 
     ON p."userId" = u.id
@@ -56,89 +52,136 @@ async function selectPosts(limit) {
     ON p.id = "postLiked"."postId"
     GROUP BY p.id, u.id
     ORDER BY p."createdAt" DESC  
-    LIMIT ${limit}; `);
+    `
+  );
 
-}
+  const allPosts = postsJsonObj.map((obj) => obj.json_build_object);
+  const posts = allPosts.filter((post) => {
+    if (followers.length !== 0) {
+      for (let i = 0; i < followers.length; i++) {
+        if (post.userId === followers[i].followerId || post.userId === userId)
+          return true;
+      }
+    } else {
+      if (post.userId === userId) return true;
+    }
+    return false;
+  });
 
-async function dislikePost(userId,postId) { 
-  return connection.query('DELETE FROM "postLiked" WHERE "userId"= $1 AND "postId"= $2',[userId,postId]);
-}
-
-async function likePost(userId,postId) { 
-  return await connection.query('INSERT INTO "postLiked" ("userId","postId") VALUES ($1,$2)',[userId,postId]);
-}
-
-async function existPost(postId) { 
-  return await connection.query('SELECT * FROM posts WHERE id= $1',[postId]);
-}
-
-
-async function deletingPost(userId, postId) { 
   
-  return await connection.query(`
+
+  return posts.filter((post,index) => index < limit );
+}
+
+async function dislikePost(userId, postId) {
+  return connection.query(
+    'DELETE FROM "postLiked" WHERE "userId"= $1 AND "postId"= $2',
+    [userId, postId]
+  );
+}
+
+async function likePost(userId, postId) {
+  return await connection.query(
+    'INSERT INTO "postLiked" ("userId","postId") VALUES ($1,$2)',
+    [userId, postId]
+  );
+}
+
+async function existPost(postId) {
+  return await connection.query("SELECT * FROM posts WHERE id= $1", [postId]);
+}
+
+async function deletingPost(userId, postId) {
+  return await connection.query(
+    `
   DELETE FROM posts
   WHERE posts.id = ($1) AND posts."userId" = ($2)
-  `, [postId, userId]);
+  `,
+    [postId, userId]
+  );
 }
 
 async function updatePost(userId, postId, description) {
-
-  return await connection.query(`
+  return await connection.query(
+    `
   UPDATE posts SET description = ($1) 
   WHERE posts.id = ($2) AND posts."userId" = ($3)
-  `, [description ,postId , userId]);
+  `,
+    [description, postId, userId]
+  );
 }
 
-async function updateLikes(postId, likes) { 
-  return await connection.query('UPDATE posts SET likes= $1 WHERE id= $2',[++likes,postId]);
-} 
+async function updateLikes(postId, likes) {
+  return await connection.query("UPDATE posts SET likes= $1 WHERE id= $2", [
+    ++likes,
+    postId,
+  ]);
+}
 
 async function existLike(postId, userId) {
-  return await connection.query(`
+  return await connection.query(
+    `
   SELECT * FROM "postLiked" 
   WHERE "postId" = ($1) AND "userId" = ($2)
-  `, [postId, userId]);
+  `,
+    [postId, userId]
+  );
 }
 
-async function updateDeslikes(postId,likes) { 
+async function updateDeslikes(postId, likes) {
   console.log(likes);
-  return await connection.query('UPDATE posts SET likes= $1 WHERE id= $2',[--likes,postId]);
+  return await connection.query("UPDATE posts SET likes= $1 WHERE id= $2", [
+    --likes,
+    postId,
+  ]);
 }
 
-async function verifyOwnerPost(postId,userId) { 
-  return await connection.query(`
+async function verifyOwnerPost(postId, userId) {
+  return await connection.query(
+    `
     SELECT u.id AS "ownerId", p.* 
     FROM posts p
     JOIN users u ON p."userId" = u.id
     WHERE p.id= $1 AND u.id= $2
-    `,[postId,userId]);
+    `,
+    [postId, userId]
+  );
 }
 
-async function sameRepost(userId,postId) { 
-  return await connection.query(`SELECT * FROM "rePosts" WHERE "userId"= $1 AND "postId"= $2`,[userId,postId]);
+async function sameRepost(userId, postId) {
+  return await connection.query(
+    `SELECT * FROM "rePosts" WHERE "userId"= $1 AND "postId"= $2`,
+    [userId, postId]
+  );
 }
 
-async function repost(userId,postId) { 
-  return await connection.query(`INSERT INTO "rePosts" ("userId","postId") VALUES ($1,$2)`,[userId,postId]);
+async function repost(userId, postId) {
+  return await connection.query(
+    `INSERT INTO "rePosts" ("userId","postId") VALUES ($1,$2)`,
+    [userId, postId]
+  );
 }
 
-async function updatePostsRepost(reposts,postId) { 
-  return await connection.query(`UPDATE posts SET reposts= $1 WHERE id= $2`,[reposts,postId]);
+async function updatePostsRepost(reposts, postId) {
+  return await connection.query(`UPDATE posts SET reposts= $1 WHERE id= $2`, [
+    reposts,
+    postId,
+  ]);
 }
 
 export const postRepository = {
   createPost,
   selectPosts,
-  likePost, 
-  dislikePost, 
+  likePost,
+  dislikePost,
   existPost,
   deletingPost,
   updatePost,
-  updateLikes, 
+  updateLikes,
   updateDeslikes,
-  existLike, 
-  verifyOwnerPost, 
-  sameRepost, 
-  repost, 
-  updatePostsRepost
+  existLike,
+  verifyOwnerPost,
+  sameRepost,
+  repost,
+  updatePostsRepost,
 };
