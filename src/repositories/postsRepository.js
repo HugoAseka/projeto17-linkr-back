@@ -12,7 +12,7 @@ async function createPost(token, newPost) {
 
   return urlMetadata(url).then(async (m) => {
     const { rows: postIdObj } = await connection.query(
-      `INSERT INTO posts (url,description,"userId","urlDescription","urlImage","urlTitle") VALUES ($1,$2,$3,$4,$5,$6) RETURNING id;`,
+      `INSERT INTO posts (url,description,"userId","urlDescription","urlImage","urlTitle", likes) VALUES ($1,$2,$3,$4,$5,$6, 1) RETURNING id;`,
       [url, description, user.id, m.description, m.image, m.title]
     );
     const userId = user.id;
