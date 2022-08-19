@@ -9,7 +9,7 @@ export async function getAllPosts(req, res) {
 
   try {
     const posts = await postRepository.selectPosts(limit, userId);
-    return res.status(200).send(posts);
+    return res.status(200).send(posts.map(object => object.json_build_object));
   } catch {
     return res.sendStatus(500);
   }
