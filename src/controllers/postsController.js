@@ -197,19 +197,7 @@ export async function getComments(req,res) {
     if (postExistence.length === 0) {
       return res.sendStatus(404);
     }
-    const { rows: postComments } = await connection.query(`SELECT json_build_object(
-      'postId', c."postId",  
-      'allComments', json_agg(json_build_object( 
-        'coment', c.coment, 
-        'userId', c."userId",
-        'username', u.username, 
-        'profilePhoto', u."profilePhoto"
-        )))
-        FROM comentaries c 
-        JOIN users u ON u.id = c."userId"
-        WHERE c."postId" = $1
-        GROUP BY c."postId"
-      `,[id]); 
+    const { rows: postComments } = await postRepository.getComments(id);
       return res.send(postComments.map((u) => u.json_build_object)).status(200);
   } catch (error) {
     console.log(error);
