@@ -6,7 +6,7 @@ import connection from "../db/database.js";
 export async function getAllPosts(req, res) {
   const limit = parseInt(req.query.queryLimit);
   const userId = parseInt(req.query.userId);
-
+  
 
   try {
     const posts = await postRepository.selectPosts(limit, userId);
