@@ -5,9 +5,14 @@ import { hashtagRepository } from "../repositories/hashtagRepository.js";
 export async function getAllPosts(req, res) {
   const limit = parseInt(req.query.queryLimit);
   const userId = parseInt(req.query.userId);
-  const x = await postRepository.selectPosts(limit, userId);
 
-  return res.status(200).send(x);
+
+  try {
+    const posts = await postRepository.selectPosts(limit, userId);
+    return res.status(200).send(posts);
+  } catch {
+    return res.sendStatus(500);
+  }
 }
 
 export async function insertPost(req, res) {
@@ -25,20 +30,15 @@ export async function insertPost(req, res) {
     return res.sendStatus(400);
   }
 
-  try {
-    const { postId, userId } = await postRepository.createPost(token, newPost);
-    newHashtags.map(async (hashtag) => {
-      await hashtagRepository.newHashtag(hashtag);
-    });
-
-    newHashtags.map(async (hashtag) => {
-      await hashtagRepository.hashtagsPosts(hashtag, postId, userId);
-    });
-
-    return res.sendStatus(200);
-  } catch {
-    return res.sendStatus(500);
-  }
+  const { postId, userId } = await postRepository.createPost(token, newPost);
+  await postRepository.likePost(userId, postId);
+  newHashtags.map(async (hashtag) => {
+    await hashtagRepository.newHashtag(hashtag);
+  });
+  newHashtags.map(async (hashtag) => {
+    await hashtagRepository.hashtagsPosts(hashtag, postId, userId);
+  });
+  res.sendStatus(200);
 }
 
 export async function updateLike(req, res) {

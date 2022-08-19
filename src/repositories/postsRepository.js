@@ -52,18 +52,25 @@ async function selectPosts(limit, userId) {
     ON p.id = "postLiked"."postId"
     GROUP BY p.id, u.id
     ORDER BY p."createdAt" DESC  
-    LIMIT ${limit}; `
+    `
   );
 
   const allPosts = postsJsonObj.map((obj) => obj.json_build_object);
   const posts = allPosts.filter((post) => {
-    for (let i = 0; i < followers.length; i++) {
-      if (post.userId === followers[i].followerId || post.userId === userId)
-        return true;
+    if (followers.length !== 0) {
+      for (let i = 0; i < followers.length; i++) {
+        if (post.userId === followers[i].followerId || post.userId === userId)
+          return true;
+      }
+    } else {
+      if (post.userId === userId) return true;
     }
     return false;
   });
-  return posts;
+
+  
+
+  return posts.filter((post,index) => index < limit );
 }
 
 async function dislikePost(userId, postId) {
