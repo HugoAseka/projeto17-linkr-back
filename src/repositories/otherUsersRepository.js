@@ -57,6 +57,7 @@ async function getReposted(id) {
             'urlImage', p."urlImage", 
             'likes', p.likes, 
             'reposts', p.reposts, 
+            'comments', p.comments,
             'ownerUsername', uu.username,
             'ownerProfilePhoto', uu."profilePhoto", 
             'ownerId', uu.id,
